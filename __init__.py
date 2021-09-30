@@ -1,1 +1,1 @@
-import ModelTraining.datamodels.datamodels
+import datamodels.datamodels
