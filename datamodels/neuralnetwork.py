@@ -1,7 +1,5 @@
 import json
 
-import matplotlib.pyplot as plt
-from matplotlib import ticker
 from tensorflow import keras
 from tensorflow.keras import layers
 
@@ -96,28 +94,6 @@ class NeuralNetwork(Model):
         print(self.model.summary())
 
         self.history = self.train_function(self.model, x_train, y_train).history
-
-    def plot_loss(self):
-        if not self.history:
-            raise RuntimeError('You must train the model first.')
-
-        fig, ax = plt.subplots()
-        plt.title('Model loss')
-
-        loss = self.history['loss']
-        ax.plot(loss, label='training loss')
-
-        if 'val_loss' in self.history:
-            val_loss = self.history['val_loss']
-            ax.plot(val_loss, label='validation loss')
-
-        plt.xlabel('epochs')
-        plt.ylabel('loss')
-        ax.xaxis.set_minor_locator(ticker.MultipleLocator(base=1.0))
-
-        plt.legend(loc='best')
-        plt.tight_layout()
-        plt.show()
 
     def predict_model(self, x):
         return self.model.predict(x)

@@ -1,2 +1,2 @@
-from wrappers.autorecursive import AutoRecursive
-from wrappers.residual import Residual
+from datamodels.wrappers.autorecursive import AutoRecursive
+from datamodels.wrappers.residual import Residual
