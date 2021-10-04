@@ -2,7 +2,7 @@ import numpy as np
 
 import pytest
 
-import datamodels.processing as processing
+from datamodels import processing
 
 def test_prevent_zeros_scalar():
     data = 0

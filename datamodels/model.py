@@ -3,7 +3,7 @@ import pickle
 from abc import abstractmethod
 
 import datamodels
-from datamodels.processing import IdentityScaler
+from . processing import IdentityScaler
 
 
 class Model:

@@ -2,7 +2,7 @@ from abc import abstractmethod
 
 import numpy as np
 
-from datamodels.processing.shape import prevent_zeros
+from . shape import prevent_zeros
 
 
 class DataScaler:

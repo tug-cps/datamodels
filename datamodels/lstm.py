@@ -1,7 +1,7 @@
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from datamodels import NeuralNetwork
+from . import NeuralNetwork
 
 
 def build_model(input_shape: tuple, target_shape: tuple) -> keras.Model:

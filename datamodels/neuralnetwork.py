@@ -3,7 +3,7 @@ import json
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from datamodels import Model
+from . import Model
 
 
 def build_model(input_shape: tuple, target_shape: tuple) -> keras.Model:

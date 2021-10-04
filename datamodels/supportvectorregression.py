@@ -2,7 +2,7 @@ import pickle
 
 import numpy as np
 
-from datamodels import Model
+from . import Model
 
 
 class SupportVectorRegression(Model):

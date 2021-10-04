@@ -1,4 +1,4 @@
-from datamodels import Model
+from . import Model
 import pickle
 
 

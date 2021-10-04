@@ -1,22 +1,22 @@
 # subpackages
-import datamodels.processing
-import datamodels.validation
+from . import processing
+from . import validation
 
-from datamodels.model import Model
+from . model import Model
 
 # These MUST be imported after the base class
 
 # models
-from datamodels.linearregression import LinearRegression
-from datamodels.neuralnetwork import NeuralNetwork
-from datamodels.randomforest import RandomForestRegression
-from datamodels.xgboost import XGBoost
-from datamodels.supportvectorregression import SupportVectorRegression
-from datamodels.convolution import ConvolutionNetwork
-from datamodels.lstm import VanillaLSTM
-from datamodels.encoderdecoder import EncoderDecoderLSTM
-from datamodels.cnnlstm import ConvolutionLSTM
+from . linearregression import LinearRegression
+from . neuralnetwork import NeuralNetwork
+from . randomforest import RandomForestRegression
+from . xgboost import XGBoost
+from . supportvectorregression import SupportVectorRegression
+from . convolution import ConvolutionNetwork
+from . lstm import VanillaLSTM
+from . encoderdecoder import EncoderDecoderLSTM
+from . cnnlstm import ConvolutionLSTM
 
 
 # wrappers
-import datamodels.wrappers
+from . import wrappers

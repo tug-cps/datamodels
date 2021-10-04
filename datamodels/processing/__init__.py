@@ -1,4 +1,4 @@
-from datamodels.processing.datascaler import (
+from . datascaler import (
     DataScaler,
     IdentityScaler,
     Normalizer,
@@ -6,4 +6,4 @@ from datamodels.processing.datascaler import (
     RobustStandardizer
 )
 
-import datamodels.processing.shape
+from . import shape
