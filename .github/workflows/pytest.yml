@@ -20,4 +20,4 @@ jobs:
 
     - name: run tests
       run: |
-        pytest --exitfirst --verbose
+        python3 -m pytest
