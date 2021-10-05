@@ -2,7 +2,7 @@ import os
 import pickle
 from abc import abstractmethod
 
-import datamodels
+from .. import datamodels
 from . processing import IdentityScaler
 
 
