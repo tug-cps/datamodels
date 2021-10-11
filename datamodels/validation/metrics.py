@@ -18,17 +18,36 @@ def prevent_zeros(value):
     corrected_value[corrected_value == 0] = 1.0
     return corrected_value
 
+
+def prevent_incorrect_dimensions(y_true, y_pred):
+    if not y_true.shape == y_pred.shape:
+        raise ValueError('y_true and y_pred must have the same dimensions\n'
+                         f'y_true was: {y_true.shape}, y_pred was: {y_pred.shape}')
+    if y_true.ndim > 1 and y_true.shape[-1] != 1:
+        raise ValueError('Cannot calculate this for multiple features, please make sure the arrays are either'
+                         f'(samples, 1) or (samples, )\n'
+                         f'y_true was: {y_true.shape}, y_pred was: {y_pred.shape}')
+
+def rsquared(y_true, y_pred):
+    prevent_incorrect_dimensions(y_true, y_pred)
+    correlation_coefficients = np.corrcoef(y_true.flatten(), y_pred.flatten())
+    return correlation_coefficients[0, 1] ** 2
+
+
 def cvrmse(y_true, y_pred):
+    prevent_incorrect_dimensions(y_true, y_pred)
     mse = np.square(np.subtract(y_true, y_pred)).mean()
     return np.sqrt(mse) / prevent_zeros(y_true.mean())
 
 
 def mape(y_true, y_pred):
+    prevent_incorrect_dimensions(y_true, y_pred)
     return (100 * np.abs(y_true - y_pred) / prevent_zeros(y_true)).mean()
 
 
 def all_metrics(y_true, y_pred):
     return {
+        'R2': rsquared(y_true, y_pred),
         'CV-RMS': cvrmse(y_true, y_pred),
         'MAPE': mape(y_true, y_pred),
     }
