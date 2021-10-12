@@ -1,7 +1,5 @@
 import pickle
 
-import numpy as np
-
 from . import Model
 
 
@@ -35,7 +33,7 @@ class SupportVectorRegression(Model):
     def predict_model(self, x):
         y = self.model.predict(x)
         if y.ndim == 1:
-            y = y[:, np.newaxis]
+            y = y[:, None]
         return y
 
     def save(self, path="models/support_vector_regression.pickle"):

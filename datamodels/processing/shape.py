@@ -1,7 +1,7 @@
-from typing import Tuple
-
 import numpy as np
 import copy
+
+from typing import Tuple
 
 
 def prevent_zeros(value):

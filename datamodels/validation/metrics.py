@@ -1,6 +1,6 @@
+import copy
 import numpy as np
 
-import copy
 
 def prevent_zeros(value):
     """

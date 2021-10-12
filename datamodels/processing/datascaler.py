@@ -1,6 +1,6 @@
-from abc import abstractmethod
-
 import numpy as np
+
+from abc import abstractmethod
 
 from . shape import prevent_zeros
 

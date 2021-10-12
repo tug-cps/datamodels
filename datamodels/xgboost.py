@@ -1,7 +1,5 @@
 import pickle
 
-import numpy as np
-
 from . import Model
 
 
@@ -36,7 +34,7 @@ class XGBoost(Model):
     def predict_model(self, x):
         y = self.model.predict(x)
         if y.ndim == 1:
-            y = y[:, np.newaxis]
+            y = y[:, None]
         return y
 
     def save(self, path="xgboost/xgboost"):

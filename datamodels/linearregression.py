@@ -1,5 +1,6 @@
-from . import Model
 import pickle
+
+from . import Model
 
 
 class LinearRegression(Model):

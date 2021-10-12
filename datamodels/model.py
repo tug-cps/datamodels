@@ -1,8 +1,9 @@
 import os
 import pickle
+import sys
+
 from abc import abstractmethod
 
-from .. import datamodels
 from . processing import IdentityScaler
 
 
@@ -22,7 +23,7 @@ class Model:
         with open(f'{path}/params.pickle', 'rb') as file:
             model_type = pickle.load(file)[0]
 
-        instance = getattr(datamodels, model_type)()
+        instance = getattr(sys.modules['datamodels'], model_type)()
         instance.load_model(path)
         return instance
 
