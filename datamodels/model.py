@@ -4,7 +4,7 @@ import sys
 
 from abc import abstractmethod
 
-from . processing import IdentityScaler
+from . processing import DataScaler, IdentityScaler
 
 
 class Model:
@@ -32,10 +32,8 @@ class Model:
         self.name = name
         self.input_shape = None
 
-        self.x_scaler_class = x_scaler_class
-        self.y_scaler_class = y_scaler_class
-        self.x_scaler = None
-        self.y_scaler = None
+        self.x_scaler = x_scaler_class()
+        self.y_scaler = y_scaler_class()
 
     def reshape_data(self, X):
         """
@@ -48,9 +46,6 @@ class Model:
         return X
 
     def scale(self, x_train, y_train):
-        self.x_scaler = self.x_scaler_class()
-        self.y_scaler = self.y_scaler_class()
-
         self.x_scaler.fit(x_train)
         self.y_scaler.fit(y_train)
 
@@ -140,9 +135,20 @@ class Model:
         else:
             os.mkdir(path)
         with open(f'{path}/params.pickle', 'wb') as file:
-            pickle.dump([self.model_type, self.name, self.input_shape, self.x_scaler, self.y_scaler], file)
+            pickle.dump([self.model_type, 
+                self.name, 
+                self.input_shape, 
+            ], file)
+
+        self.x_scaler.save(f'{path}/x_scaler.pickle')
+        self.y_scaler.save(f'{path}/y_scaler.pickle')
 
     @abstractmethod
     def load_model(self, path='models/EXAMPLE'):
         with open(f'{path}/params.pickle', 'rb') as file:
-            self.name, self.input_shape, self.x_scaler, self.y_scaler = pickle.load(file)[1:]
+            params = pickle.load(file)
+            self.name = params[1]
+            self.input_shape = params[2]
+        
+        self.x_scaler = DataScaler.load(f'{path}/x_scaler.pickle')
+        self.y_scaler = DataScaler.load(f'{path}/y_scaler.pickle')

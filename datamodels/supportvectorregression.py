@@ -37,9 +37,11 @@ class SupportVectorRegression(Model):
         return y
 
     def save(self, path="models/support_vector_regression.pickle"):
-        with open(path, "wb") as file:
+        super(SupportVectorRegression, self).save(path)
+        with open(f'{path}/model.pickle', 'wb') as file:
             pickle.dump(self.model, file)
 
     def load_model(self, path="models/support_vector_regression.pickle"):
-        with open(path, "rb") as file:
+        super(SupportVectorRegression, self).load_model(path)
+        with open(f'{path}/model.pickle', 'rb') as file:
             self.model = pickle.load(file)

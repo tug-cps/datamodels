@@ -1,3 +1,7 @@
+import os
+import pickle
+import sys
+
 import numpy as np
 
 from abc import abstractmethod
@@ -6,6 +10,21 @@ from . shape import prevent_zeros
 
 
 class DataScaler:
+
+    @staticmethod
+    def load(path='scalers.pickle'):
+        with open(path, 'rb') as file:
+            attrs = pickle.load(file)
+            scaler_type = attrs[0]
+
+            instance = getattr(sys.modules['datamodels.processing'], scaler_type)()
+            instance.set_attrs(attrs[1:])
+
+        return instance
+
+    @abstractmethod
+    def set_attrs(self, attrs):
+            raise NotImplementedError()  
 
     @abstractmethod
     def fit(self, distribution):
@@ -29,6 +48,11 @@ class DataScaler:
     def inverse_transform(self, data):
         raise NotImplementedError()
 
+    @abstractmethod
+    def save(self, path='scaler.pickle'):
+        if os.path.isfile(path):
+            print(f'{path} already exists, overwriting ..')
+
 
 class IdentityScaler(DataScaler):
 
@@ -40,6 +64,16 @@ class IdentityScaler(DataScaler):
 
     def inverse_transform(self, data):
         return data
+
+    def save(self, path='scaler.pickle'):
+        super(IdentityScaler, self).save(path)
+        with open(path, 'wb') as file:
+            pickle.dump([
+                self.__class__.__name__, 
+            ], file)
+    
+    def set_attrs(self, attrs):
+        pass
 
 
 class Normalizer(DataScaler):
@@ -80,6 +114,21 @@ class Normalizer(DataScaler):
                 "parameters not set, cannot transform data, you must call .fit(distribution) first."
             )
         return data * self.scale + self.min
+    
+    def save(self, path='scaler.pickle'):
+        super(Normalizer, self).save(path)
+        with open(path, 'wb') as file:
+            pickle.dump([
+                self.__class__.__name__,
+                self.min,
+                self.max,
+                self.scale
+            ], file)
+
+    def set_attrs(self, attrs):
+        self.min = attrs[0]
+        self.max = attrs[1]
+        self.scale = attrs[2]
 
 
 class Standardizer(DataScaler):
@@ -116,6 +165,19 @@ class Standardizer(DataScaler):
             )
         return data * self.std + self.mean
 
+    def save(self, path='scaler.pickle'):
+        super(Standardizer, self).save(path)
+        with open(path, 'wb') as file:
+            pickle.dump([
+                self.__class__.__name__,
+                self.mean,
+                self.std,
+            ], file)
+
+    def set_attrs(self, attrs):
+        self.mean = attrs[0]
+        self.std = attrs[1]
+
 
 class RobustStandardizer(DataScaler):
 
@@ -150,3 +212,16 @@ class RobustStandardizer(DataScaler):
                 "parameters not set, cannot transform data, you must call .fit(distribution) first."
             )
         return data * self.scale + self.median
+
+    def save(self, path='scaler.pickle'):
+        super(RobustStandardizer, self).save(path)
+        with open(path, 'wb') as file:
+            pickle.dump([
+                self.__class__.__name__,
+                self.median,
+                self.scale,
+            ], file)
+
+    def set_attrs(self, attrs):
+        self.median = attrs[0]
+        self.scale = attrs[1]

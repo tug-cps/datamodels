@@ -1,8 +1,11 @@
+import os
 import numpy as np
+
+from pathlib import Path
 
 import pytest
 
-from datamodels.processing import Standardizer, Normalizer, RobustStandardizer, IdentityScaler
+from datamodels.processing import DataScaler, Standardizer, Normalizer, RobustStandardizer, IdentityScaler
 
 """
 Data
@@ -36,6 +39,26 @@ normalized_array = np.array([
 parameterized tests
 
 """
+@pytest.mark.parametrize('scaler', [
+    IdentityScaler(),
+    Normalizer(),
+    Standardizer(),
+    RobustStandardizer()
+])
+def test_save_and_load_scaler(scaler):
+    test_file_path = Path(__file__).parent.joinpath('testScaler.pickle')
+
+    scaler.fit(np.ones((5,)))
+    scaler.save(test_file_path)
+
+    scaler_from_file = DataScaler.load(test_file_path)
+    
+    for attr in scaler_from_file.__dict__.values():
+        assert attr is not None
+
+    os.remove(test_file_path)
+
+
 @pytest.mark.parametrize('data', [
     np.zeros(5),
     np.array([1, 2, 3, 4, 5]),
