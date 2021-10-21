@@ -48,7 +48,8 @@ def split_into_target_segments(
     :param features: an array containing the features, this can be previous system states (i.e. targets) and/or
                      other inputs.
 
-    :param targets: an array containing one ore more target values.
+    :param targets: an array containing one ore more target values. OPTIONAL: if you don't pass targets,
+                    the function will return an empty list for the labels.
 
     :param lookback_horizon: length of the lookback. resulting feature segments will be of of size lookback + 1
                              for 0, this is: (f_t_0 ... f_t_n)
@@ -65,15 +66,15 @@ def split_into_target_segments(
      b) the labels: an array of single number labels
     """
 
-    if not features.ndim == 2:
+    if features.ndim != 2:
         raise RuntimeError(f'features must have shape (seq_length, num_features), '
                            f'but has {features.shape}')
 
-    if not targets.ndim == 2:
+    if targets is not None and targets.ndim != 2:
         raise RuntimeError(f'targets must have shape (seq_length, num_target_features), '
                            f'but has {targets.shape}')
 
-    if not features.shape[0] == targets.shape[0]:
+    if targets is not None and features.shape[0] != targets.shape[0]:
         raise RuntimeError(f'features and targets must have the same length.\n'
                            f'features has: {features.shape}, targets has: {targets.shape}')
 
@@ -92,9 +93,7 @@ def split_into_target_segments(
 
     for i in range(start_index, end_index):
         feature_list.append(features[i - lookback_horizon: i + 1])
-        target_list.append(targets[i + prediction_horizon])
+        if targets is not None:
+            target_list.append(targets[i + prediction_horizon])
 
-    feature_segments = np.array(feature_list)
-    target_segments = np.array(target_list)
-
-    return feature_segments, target_segments
+    return np.array(feature_list), np.array(target_list)
