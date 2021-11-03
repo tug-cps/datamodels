@@ -16,8 +16,9 @@ class DataScaler:
         with open(path, 'rb') as file:
             attrs = pickle.load(file)
             scaler_type = attrs[0]
-
-            instance = getattr(sys.modules['datamodels.processing'], scaler_type)()
+            
+            parent_name = '.'.join(__name__.split('.')[:-1])
+            instance = getattr(sys.modules[parent_name], scaler_type)()
             instance.set_attrs(attrs[1:])
 
         return instance
