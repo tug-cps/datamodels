@@ -92,7 +92,7 @@ class SplineInterpolator(FeatureExpansion):
             setattr(self, name, attrs[i])
 
     def fit_transformer(self, x=None, y=None):
-        self.model.fit(x, y)
+        self.model = self.model.fit(x, y)
 
     def transform_samples(self, x=None):
         return self.model.transform(x)
@@ -130,7 +130,7 @@ class PolynomialExpansion(FeatureExpansion):
 
 
     def fit_transformer(self, x=None, y=None):
-        self.model.fit(x,y)
+        self.model = self.model.fit(x,y)
 
     def transform_samples(self, x=None):
         return self.model.transform(x)
