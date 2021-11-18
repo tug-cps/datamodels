@@ -28,12 +28,12 @@ class Model:
         instance.load_model(path)
         return instance
 
-    def __init__(self, name='', x_scaler_class=IdentityScaler, y_scaler_class=IdentityScaler, expander_class=IdentityExpander, **kwargs):
+    def __init__(self, name='', x_scaler_class=IdentityScaler, y_scaler_class=IdentityScaler, expander_classes=[IdentityExpander], **kwargs):
         self.model_type = self.__class__.__name__
         self.name = name
         self.input_shape = None
 
-        self.expander = expander_class()
+        self.expanders = [expander_class() for expander_class in expander_classes]
         self.x_scaler = x_scaler_class()
         self.y_scaler = y_scaler_class()
 
@@ -87,10 +87,11 @@ class Model:
         x_train, y_train = self.scale(x_train, y_train)
 
         """
-            Feature Expansion: polynomial or spline expansion
+            Feature Expansion: polynomial or spline expansion - use all expanders
         """
-        self.expander.fit(x_train, y_train)
-        x_train = self.expander.transform(x_train)
+        for expander in self.expanders:
+            expander.fit(x_train, y_train)
+            x_train = expander.transform(x_train)
 
         self.train_model(x_train, y_train)
 
@@ -122,7 +123,10 @@ class Model:
 
         x = self.reshape_data(x)
         x = self.x_scaler.transform(x)
-        x = self.expander.transform(x)
+
+        ''' Expand features '''
+        for expander in self.expanders:
+            x = expander.transform(x)
 
         y = self.predict_model(x)
 
@@ -154,7 +158,7 @@ class Model:
 
         self.x_scaler.save(f'{path}/x_scaler.pickle')
         self.y_scaler.save(f'{path}/y_scaler.pickle')
-        self.expander.save(f'{path}/expander.pickle')
+        FeatureExpansion.save_expanders(path, self.expanders)
 
 
     @abstractmethod
@@ -166,4 +170,4 @@ class Model:
         
         self.x_scaler = DataScaler.load(f'{path}/x_scaler.pickle')
         self.y_scaler = DataScaler.load(f'{path}/y_scaler.pickle')
-        self.expander = FeatureExpansion.load(f'{path}/expander.pickle')
+        self.expanders = FeatureExpansion.load_expanders(path)

@@ -1,27 +1,26 @@
 import os
-import pickle
 import sys
 import numpy as np
+import pickle
 
 from sklearn.preprocessing import SplineTransformer, PolynomialFeatures
 from abc import abstractmethod
 
 class FeatureExpansion:
-    model = None
+
     @staticmethod
-    def load(path='scalers.pickle'):
+    def load(path='expander.pickle'):
         with open(path, 'rb') as file:
             attrs = pickle.load(file)
-            scaler_type = attrs[0]
-
-            instance = getattr(sys.modules['datamodels.processing'], scaler_type)()
+            type = attrs[0]
+            instance = getattr(sys.modules['datamodels.processing'], type)()
             instance.set_attrs(attrs[1:])
 
         return instance
 
     @abstractmethod
     def set_attrs(self, attrs):
-            raise NotImplementedError()  
+            raise NotImplementedError()
 
     def fit(self, x=None, y=None):
         if x.ndim == 3:
@@ -52,6 +51,24 @@ class FeatureExpansion:
             print(f'{path} already exists, overwriting ..')
 
 
+
+    @staticmethod
+    def load_expanders(path):
+        expanders = []
+        for root, dirs, files in os.walk(path):
+            for filename in files:
+                print(filename)
+                if "expander" in filename:
+                    expanders.append(FeatureExpansion.load(f'{path}/{filename}'))
+        return expanders
+
+
+    @staticmethod
+    def save_expanders(path, expanders):
+        for index, expander in enumerate(expanders):
+            expander.save(f'{path}/expander_{index}.pickle')
+
+
 """
 Spline Interpolation 
 Expands features by spline bases -
@@ -62,15 +79,32 @@ class SplineInterpolator(FeatureExpansion):
     degree: int = 2
     n_knots: int = 4
     extrapolation: str = "periodic"
+    model = None
 
-    def __init__(self):
+    def __init__(self, degree=2, n_knots=4, extrapolation="periodic"):
+        self.degree = degree
+        self.n_knots = n_knots
+        self.extrapolation = extrapolation
         self.model = SplineTransformer(n_knots=self.n_knots, degree=self.degree, extrapolation=self.extrapolation)
+
+    def set_attrs(self, attrs):
+        for i, name in enumerate(["degree", "n_knots", "extrapolation", "model"]):
+            setattr(self, name, attrs[i])
 
     def fit_transformer(self, x=None, y=None):
         self.model.fit(x, y)
 
     def transform_samples(self, x=None):
         return self.model.transform(x)
+
+    def save(self, path="expander.pickle"):
+        with open(path, 'wb') as file:
+            pickle.dump([
+                self.__class__.__name__,
+                self.degree,
+                self.n_knots,
+                self.extrapolation,
+                self.model], file)
 
 
 
@@ -82,10 +116,18 @@ Returns expanded features and also the names
 """
 class PolynomialExpansion(FeatureExpansion):
     degree: int = 2
-    feature_names = None
+    include_bias = False
+    model = None
 
-    def __init__(self):
-        self.model = PolynomialFeatures(degree=self.degree, include_bias=False)
+    def __init__(self, degree=2, include_bias=False):
+        self.degree = degree
+        self.include_bias = include_bias
+        self.model = PolynomialFeatures(degree=self.degree, include_bias=include_bias)
+
+    def set_attrs(self, attrs):
+        for i, name in enumerate(["degree", "include_bias", "model"]):
+            setattr(self, name, attrs[i])
+
 
     def fit_transformer(self, x=None, y=None):
         self.model.fit(x,y)
@@ -96,6 +138,13 @@ class PolynomialExpansion(FeatureExpansion):
     def get_feature_names(self, feature_names=None):
         return self.model.get_feature_names(feature_names)
 
+    def save(self, path="expander.pickle"):
+        with open(path, 'wb') as file:
+            pickle.dump([
+                self.__class__.__name__,
+                self.degree,
+                self.include_bias, self.model], file)
+
 """
 Identity - if no expansion is used
 """
@@ -104,8 +153,17 @@ class IdentityExpander(FeatureExpansion):
     def __init__(self):
         pass
 
+    def set_attrs(self, attrs):
+        pass
+
     def fit_transformer(self, x=None, y=None):
         pass
 
     def transform_samples(self, x=None):
         return x
+
+    def save(self, path="expander.pickle"):
+        with open(path, 'wb') as file:
+            pickle.dump([
+                self.__class__.__name__], file)
+
