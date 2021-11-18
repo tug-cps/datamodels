@@ -5,7 +5,7 @@ import sys
 from abc import abstractmethod
 
 from . processing import DataScaler, IdentityScaler
-
+from . processing.feature_extension import FeatureExpansion, IdentityExpander
 
 class Model:
 
@@ -23,16 +23,17 @@ class Model:
         with open(f'{path}/params.pickle', 'rb') as file:
             model_type = pickle.load(file)[0]
 
-        parent_name = '.'.join(__name__.split('.')[:-1])
-        instance = getattr(sys.modules[parent_name], model_type)()
-        instance.load_model(path)
+	parent_name = '.'.join(__name__.split('.')[:-1])
+        instance = getattr(sys.modules[parent_name], model_type)()        
+	instance.load_model(path)
         return instance
 
-    def __init__(self, name='', x_scaler_class=IdentityScaler, y_scaler_class=IdentityScaler, **kwargs):
+    def __init__(self, name='', x_scaler_class=IdentityScaler, y_scaler_class=IdentityScaler, expander_class=IdentityExpander, **kwargs):
         self.model_type = self.__class__.__name__
         self.name = name
         self.input_shape = None
 
+        self.expander = expander_class()
         self.x_scaler = x_scaler_class()
         self.y_scaler = y_scaler_class()
 
@@ -51,6 +52,7 @@ class Model:
         self.y_scaler.fit(y_train)
 
         return self.x_scaler.transform(x_train), self.y_scaler.transform(y_train)
+
 
     def train(self, x_train, y_train):
         """
@@ -83,6 +85,13 @@ class Model:
         self.input_shape = x_train.shape[1:]
         x_train = self.reshape_data(x_train)
         x_train, y_train = self.scale(x_train, y_train)
+
+        """
+            Feature Expansion: polynomial or spline expansion
+        """
+        self.expander.fit(x_train, y_train)
+        x_train = self.expander.transform(x_train)
+
         self.train_model(x_train, y_train)
 
     @abstractmethod
@@ -113,6 +122,8 @@ class Model:
 
         x = self.reshape_data(x)
         x = self.x_scaler.transform(x)
+        x = self.expander.transform(x)
+
         y = self.predict_model(x)
 
         if not y.shape[0] == x.shape[0]:
@@ -143,6 +154,8 @@ class Model:
 
         self.x_scaler.save(f'{path}/x_scaler.pickle')
         self.y_scaler.save(f'{path}/y_scaler.pickle')
+        self.expander.save(f'{path}/expander.pickle')
+
 
     @abstractmethod
     def load_model(self, path='models/EXAMPLE'):
@@ -153,3 +166,4 @@ class Model:
         
         self.x_scaler = DataScaler.load(f'{path}/x_scaler.pickle')
         self.y_scaler = DataScaler.load(f'{path}/y_scaler.pickle')
+        self.expander = FeatureExpansion.load(f'{path}/expander.pickle')

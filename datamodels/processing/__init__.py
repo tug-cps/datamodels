@@ -7,3 +7,10 @@ from . datascaler import (
 )
 
 from . import shape
+
+from .feature_extension import (
+    FeatureExpansion,
+    IdentityExpander,
+    SplineInterpolator,
+    PolynomialExpansion
+)

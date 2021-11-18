@@ -1,0 +1,111 @@
+import os
+import pickle
+import sys
+import numpy as np
+
+from sklearn.preprocessing import SplineTransformer, PolynomialFeatures
+from abc import abstractmethod
+
+class FeatureExpansion:
+    model = None
+    @staticmethod
+    def load(path='scalers.pickle'):
+        with open(path, 'rb') as file:
+            attrs = pickle.load(file)
+            scaler_type = attrs[0]
+
+            instance = getattr(sys.modules['datamodels.processing'], scaler_type)()
+            instance.set_attrs(attrs[1:])
+
+        return instance
+
+    @abstractmethod
+    def set_attrs(self, attrs):
+            raise NotImplementedError()  
+
+    def fit(self, x=None, y=None):
+        if x.ndim == 3:
+            self.fit_transformer(x[:,0, :],y)
+        else:
+            self.fit_transformer(x,y)
+
+    @abstractmethod
+    def fit_transformer(self, x=None, y=None):
+        raise NotImplementedError()
+
+    def transform_samples(self, x=None):
+        raise NotImplementedError()
+
+    def transform(self, x=None):
+        transformed_features = np.zeros(x.shape)
+        if x.ndim == 3:
+            lookback_states = x.shape[1]
+            for i in range(lookback_states):
+                transformed_features[:,i,:] = self.transform_samples(x[:,i,:])
+        if x.ndim == 2:
+            transformed_features = self.transform_samples(x)
+        return transformed_features
+
+    @abstractmethod
+    def save(self, path='expander.pickle'):
+        if os.path.isfile(path):
+            print(f'{path} already exists, overwriting ..')
+
+
+"""
+Spline Interpolation 
+Expands features by spline bases -
+ see https://scikit-learn.org/dev/modules/generated/sklearn.preprocessing.SplineTransformer.html
+Returns expanded features 
+"""
+class SplineInterpolator(FeatureExpansion):
+    degree: int = 2
+    n_knots: int = 4
+    extrapolation: str = "periodic"
+
+    def __init__(self):
+        self.model = SplineTransformer(n_knots=self.n_knots, degree=self.degree, extrapolation=self.extrapolation)
+
+    def fit_transformer(self, x=None, y=None):
+        self.model.fit(x, y)
+
+    def transform_samples(self, x=None):
+        return self.model.transform(x)
+
+
+
+"""
+Polynomial Feature Expansion 
+Expands features by polynomials of variable order - 
+https://scikit-learn.org/dev/modules/generated/sklearn.preprocessing.PolynomialFeatures.html
+Returns expanded features and also the names
+"""
+class PolynomialExpansion(FeatureExpansion):
+    degree: int = 2
+    feature_names = None
+
+    def __init__(self):
+        self.model = PolynomialFeatures(degree=self.degree, include_bias=False)
+
+    def fit_transformer(self, x=None, y=None):
+        self.model.fit(x,y)
+
+    def transform_samples(self, x=None):
+        return self.model.transform(x)
+
+    def get_feature_names(self, feature_names=None):
+        return self.model.get_feature_names(feature_names)
+
+"""
+Identity - if no expansion is used
+"""
+class IdentityExpander(FeatureExpansion):
+
+    def __init__(self):
+        pass
+
+    def fit_transformer(self, x=None, y=None):
+        pass
+
+    def transform_samples(self, x=None):
+        return x
