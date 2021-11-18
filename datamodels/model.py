@@ -23,9 +23,9 @@ class Model:
         with open(f'{path}/params.pickle', 'rb') as file:
             model_type = pickle.load(file)[0]
 
-	parent_name = '.'.join(__name__.split('.')[:-1])
+        parent_name = '.'.join(__name__.split('.')[:-1])
         instance = getattr(sys.modules[parent_name], model_type)()        
-	instance.load_model(path)
+        instance.load_model(path)
         return instance
 
     def __init__(self, name='', x_scaler_class=IdentityScaler, y_scaler_class=IdentityScaler, expander_class=IdentityExpander, **kwargs):
