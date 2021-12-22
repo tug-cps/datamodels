@@ -18,8 +18,12 @@ class FeatureExpansion:
 
         return instance
 
+    @abstractmethod
     def set_attrs(self, attrs):
             raise NotImplementedError()
+
+    def get_feature_names(self, feature_names=None):
+        return feature_names
 
     def fit(self, x=None, y=None):
         if x.ndim == 3:
@@ -90,6 +94,9 @@ class SplineInterpolator(FeatureExpansion):
         for i, name in enumerate(["degree", "n_knots", "extrapolation", "model"]):
             setattr(self, name, attrs[i])
 
+    def get_feature_names(self, feature_names=None):
+        return self.model.get_feature_names_out(feature_names)
+
     def fit_transformer(self, x=None, y=None):
         self.model = self.model.fit(x, y)
 
@@ -115,40 +122,34 @@ Returns expanded features and also the names
 """
 class PolynomialExpansion(FeatureExpansion):
     degree: int = 2
-    include_bias: bool = False
+    include_bias = False
     model = None
-    selected_outputs = None
 
-    def __init__(self, degree=2, include_bias=False, selected_outputs=None):
+    def __init__(self, degree=2, include_bias=False):
         self.degree = degree
         self.include_bias = include_bias
-        self.selected_outputs = selected_outputs
         self.model = PolynomialFeatures(degree=self.degree, include_bias=include_bias)
 
     def set_attrs(self, attrs):
-        for i, name in enumerate(["degree", "include_bias", "selected_outputs", "model"]):
+        for i, name in enumerate(["degree", "include_bias", "model"]):
             setattr(self, name, attrs[i])
+
 
     def fit_transformer(self, x=None, y=None):
         self.model = self.model.fit(x,y)
 
     def transform_samples(self, x=None):
-        return self._select_outputs(self.model.transform(x))
+        return self.model.transform(x)
 
     def get_feature_names(self, feature_names=None):
-        return self._select_outputs(self.model.get_feature_names(feature_names))
-
-    def _select_outputs(self, values):
-        return values[self.selected_outputs] if self.selected_outputs else values
+        return self.model.get_feature_names(feature_names)
 
     def save(self, path="expander.pickle"):
         with open(path, 'wb') as file:
             pickle.dump([
                 self.__class__.__name__,
                 self.degree,
-                self.include_bias,
-                self.selected_outputs,
-                self.model], file)
+                self.include_bias, self.model], file)
 
 """
 Identity - if no expansion is used
@@ -169,6 +170,5 @@ class IdentityExpander(FeatureExpansion):
 
     def save(self, path="expander.pickle"):
         with open(path, 'wb') as file:
-            pickle.dump([
-                self.__class__.__name__], file)
+            pickle.dump([self.__class__.__name__], file)
 
