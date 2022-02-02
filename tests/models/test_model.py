@@ -12,7 +12,9 @@ from datamodels import (
     VanillaLSTM,
     ConvolutionNetwork,
     ConvolutionLSTM,
-    EncoderDecoderLSTM
+    EncoderDecoderLSTM,
+    GRU,
+    RecurrentNetwork
 )
 
 
@@ -23,6 +25,8 @@ from datamodels import (
     VanillaLSTM,
     ConvolutionNetwork,
     ConvolutionLSTM,
+    GRU,
+    RecurrentNetwork
 ])
 def test_predict_sequence_save_and_load(model_class, tmpdir):
     test_model_path = tmpdir.join('testModel')
@@ -66,7 +70,9 @@ def test_predict_sequence_save_and_load(model_class, tmpdir):
     VanillaLSTM,
     ConvolutionNetwork,
     ConvolutionLSTM,
-    EncoderDecoderLSTM
+    EncoderDecoderLSTM,
+    GRU,
+    RecurrentNetwork
 ])
 def test_predict_single_value_save_and_load(model_class, tmpdir):
     test_model_path = tmpdir.join('testModel')

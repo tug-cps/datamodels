@@ -16,6 +16,8 @@ from . convolution import ConvolutionNetwork
 from . lstm import VanillaLSTM
 from . encoderdecoder import EncoderDecoderLSTM
 from . cnnlstm import ConvolutionLSTM
+from . gru import GRU
+from . rnn import RecurrentNetwork
 
 
 # wrappers
