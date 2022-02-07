@@ -3,16 +3,16 @@ import pickle
 from . import Model
 
 
-class LinearRegression(Model):
+class RidgeRegression(Model):
 
     def __init__(self, parameters=None, **kwargs):
         super().__init__(**kwargs)
 
         if parameters is None:
-            parameters = {"n_jobs": -1}
+            parameters = {'alpha':0.5}
 
-        from sklearn.linear_model import LinearRegression
-        self.model = LinearRegression(**parameters)
+        from sklearn.linear_model import Ridge
+        self.model = Ridge(**parameters)
 
     def reshape_data(self, x):
         if x.ndim == 3:
@@ -26,11 +26,11 @@ class LinearRegression(Model):
         return self.model.predict(x)
 
     def save(self, path="data/models/DUMMY.txt"):
-        super(LinearRegression, self).save(path)
+        super(RidgeRegression, self).save(path)
         with open(f'{path}/model.pickle', 'wb') as file:
-            pickle.dump([self.model], file)
+            pickle.dump(self.model, file)
 
     def load_model(self, path="data/models/DUMMY.txt"):
-        super(LinearRegression, self).load_model(path)
+        super(RidgeRegression, self).load_model(path)
         with open(f'{path}/model.pickle', 'rb') as file:
             self.model = pickle.load(file)

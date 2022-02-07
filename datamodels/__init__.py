@@ -16,7 +16,9 @@ from . convolution import ConvolutionNetwork
 from . lstm import VanillaLSTM
 from . encoderdecoder import EncoderDecoderLSTM
 from . cnnlstm import ConvolutionLSTM
-
+from . ridgeregression import RidgeRegression
+from . lassoregression import LassoRegression
+from . symbolicregression import SymbolicRegression
 
 # wrappers
 from . import wrappers
