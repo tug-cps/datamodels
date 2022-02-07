@@ -28,7 +28,7 @@ class LinearRegression(Model):
     def save(self, path="data/models/DUMMY.txt"):
         super(LinearRegression, self).save(path)
         with open(f'{path}/model.pickle', 'wb') as file:
-            pickle.dump([self.model], file)
+            pickle.dump(self.model, file)
 
     def load_model(self, path="data/models/DUMMY.txt"):
         super(LinearRegression, self).load_model(path)
