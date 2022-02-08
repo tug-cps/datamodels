@@ -4,7 +4,6 @@ from . import Model
 
 
 class RandomForestRegression(Model):
-
     def __init__(self, parameters=None, **kwargs):
         super().__init__(**kwargs)
 
@@ -19,31 +18,32 @@ class RandomForestRegression(Model):
             }
 
         from sklearn.ensemble import RandomForestRegressor
+
         self.model = RandomForestRegressor(**parameters)
 
+    def reshape(self, arr):
+        if arr.shape[1] == arr.shape[1] == 1:
+            arr = arr.ravel()
+        else:
+            arr = arr.reshape(arr.shape[0], arr.shape[1] * arr.shape[2])
+        return arr
+
     def train_model(self, x_train, y_train, **kwargs):
-        if y_train.shape[1] == 1:
-            y_train = y_train.ravel()
+        x_train = self.reshape(x_train)
+        y_train = self.reshape(y_train)
 
         self.model.fit(x_train, y_train)
 
-    def reshape_data(self, x):
-        if len(x.shape) == 3:
-            x = x.reshape(x.shape[0], -1)
-        return x
-
     def predict_model(self, x):
-        y = self.model.predict(x)
-        if y.ndim == 1:
-            y = y[:, None]
-        return y
+        x = self.reshape(x)
+        return self.model.predict(x)
 
-    def save(self, path="random_forest/random_forest"):
+    def save(self, path="data/models/RandomForest"):
         super(RandomForestRegression, self).save(path)
-        with open(f'{path}/model.pickle', 'wb') as file:
+        with open(f"{path}/model.pickle", "wb") as file:
             pickle.dump(self.model, file)
 
-    def load_model(self, path="random_forest/random_forest"):
+    def load_model(self, path="data/models/RandomForest"):
         super(RandomForestRegression, self).load_model(path)
-        with open(f'{path}/model.pickle', 'rb') as file:
+        with open(f"{path}/model.pickle", "rb") as file:
             self.model = pickle.load(file)

@@ -8,10 +8,8 @@ def build_model(input_shape: tuple, target_shape: tuple) -> keras.Model:
     return keras.Sequential(
         [
             layers.Input(input_shape),
-            layers.Conv1D(filters=32,
-                          kernel_size=3,
-                          activation='relu'),
-            layers.Dense(units=32, activation='relu'),
+            layers.Conv1D(filters=32, kernel_size=3, activation="relu"),
+            layers.Dense(units=32, activation="relu"),
             layers.Flatten(),
             layers.Dense(target_shape[0]),
         ]

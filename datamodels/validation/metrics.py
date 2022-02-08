@@ -4,12 +4,21 @@ import numpy as np
 
 def prevent_zeros(value):
     """
-    this ensures that the value does not contain zeros.
 
+    this ensures that the value does not contain zeros.
     it can be used to prevent division by zero.
 
-    :param value: scalar or array-like
-    :return: value without zeros
+    Parameters
+    ----------
+
+    x : scalar or array_like
+        the value where zeros should be replaced.
+
+    Returns
+    -------
+    scalar or array_like
+        the input with the zeroes replaced.
+
     """
     if np.isscalar(value):
         return value if value != 0 else 1.
