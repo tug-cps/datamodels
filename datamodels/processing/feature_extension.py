@@ -2,12 +2,13 @@ import os
 import sys
 import numpy as np
 import pickle
+from typing import List
 
 from sklearn.preprocessing import SplineTransformer, PolynomialFeatures
 from abc import abstractmethod
 
 class FeatureExpansion:
-
+    selected_features: List[bool] = None
     @staticmethod
     def load(path='expander.pickle'):
         with open(path, 'rb') as file:
@@ -22,14 +23,21 @@ class FeatureExpansion:
     def set_attrs(self, attrs):
             raise NotImplementedError()
 
-    def get_feature_names(self, feature_names=None):
+    def set_feature_select(self, selected_features):
+        self.selected_features = selected_features
+
+    def get_feature_names_model(self, feature_names=None):
         return feature_names
+
+    def get_feature_names(self, feature_names=None):
+        features = self.get_feature_names_model(feature_names)
+        return [feature for feature, select in zip(features, self.selected_features) if select] if self.selected_features is not None else features
 
     def fit(self, x=None, y=None):
         if x.ndim == 3:
             self.fit_transformer(x[:,0, :],y)
         else:
-            self.fit_transformer(x,y)
+            self.fit_transformer(x, y)
 
     @abstractmethod
     def fit_transformer(self, x=None, y=None):
@@ -44,8 +52,14 @@ class FeatureExpansion:
             lookback_states = x.shape[1]
             for i in range(lookback_states):
                 transformed_features[:,i,:] = self.transform_samples(x[:,i,:])
+            if self.selected_features is not None:
+                transformed_features = transformed_features[:,:,self.selected_features]
+
         if x.ndim == 2:
             transformed_features = self.transform_samples(x)
+            if self.selected_features is not None:
+                transformed_features = transformed_features[:,self.selected_features]
+
         return transformed_features
 
     @abstractmethod
@@ -94,7 +108,7 @@ class SplineInterpolator(FeatureExpansion):
         for i, name in enumerate(["degree", "n_knots", "extrapolation", "model"]):
             setattr(self, name, attrs[i])
 
-    def get_feature_names(self, feature_names=None):
+    def get_feature_names_model(self, feature_names=None):
         return self.model.get_feature_names_out(feature_names)
 
     def fit_transformer(self, x=None, y=None):
@@ -141,8 +155,8 @@ class PolynomialExpansion(FeatureExpansion):
     def transform_samples(self, x=None):
         return self.model.transform(x)
 
-    def get_feature_names(self, feature_names=None):
-        return self.model.get_feature_names(feature_names)
+    def get_feature_names_model(self, feature_names=None):
+        return self.model.get_feature_names_out(feature_names)
 
     def save(self, path="expander.pickle"):
         with open(path, 'wb') as file:
