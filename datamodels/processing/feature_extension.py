@@ -31,7 +31,7 @@ class FeatureExpansion:
 
     def get_feature_names(self, feature_names=None):
         features = self.get_feature_names_model(feature_names)
-        return [feature for feature, select in zip(features, self.selected_features) if select] if self.selected_features else features
+        return [feature for feature, select in zip(features, self.selected_features) if select] if self.selected_features is not None else features
 
     def fit(self, x=None, y=None):
         if x.ndim == 3:
