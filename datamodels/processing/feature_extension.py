@@ -121,6 +121,7 @@ class SplineInterpolator(FeatureExpansion):
         with open(path, 'wb') as file:
             pickle.dump([
                 self.__class__.__name__,
+                self.selected_features,
                 self.degree,
                 self.n_knots,
                 self.extrapolation,
@@ -139,13 +140,13 @@ class PolynomialExpansion(FeatureExpansion):
     include_bias = False
     model = None
 
-    def __init__(self, degree=2, include_bias=False):
+    def __init__(self, degree=2, include_bias=False, **kwargs):
         self.degree = degree
         self.include_bias = include_bias
-        self.model = PolynomialFeatures(degree=self.degree, include_bias=include_bias)
+        self.model = PolynomialFeatures(degree=self.degree, include_bias=include_bias, **kwargs)
 
     def set_attrs(self, attrs):
-        for i, name in enumerate(["degree", "include_bias", "model"]):
+        for i, name in enumerate(["selected_features", "degree", "include_bias", "model"]):
             setattr(self, name, attrs[i])
 
 
@@ -162,6 +163,7 @@ class PolynomialExpansion(FeatureExpansion):
         with open(path, 'wb') as file:
             pickle.dump([
                 self.__class__.__name__,
+                self.selected_features,
                 self.degree,
                 self.include_bias, self.model], file)
 

@@ -28,12 +28,12 @@ class Model:
         instance.load_model(path)
         return instance
 
-    def __init__(self, name='', x_scaler_class=IdentityScaler, y_scaler_class=IdentityScaler, expander_classes=[IdentityExpander], **kwargs):
+    def __init__(self, name='', x_scaler_class=IdentityScaler, y_scaler_class=IdentityScaler, expanders=None, **kwargs):
         self.model_type = self.__class__.__name__
         self.name = name
         self.input_shape = None
 
-        self.expanders = [expander_class() for expander_class in expander_classes]
+        self.expanders = expanders if expanders is not None else [IdentityExpander()]
         self.x_scaler = x_scaler_class()
         self.y_scaler = y_scaler_class()
 
