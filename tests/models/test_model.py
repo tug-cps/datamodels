@@ -35,13 +35,13 @@ def test_predict_sequence_save_and_load(model_class, tmpdir):
     number_input_features = 3
     number_target_features = 1
 
-    x_train = np.random.random((15, number_input_features))
-    y_train = np.random.random((15, number_target_features))
+    x_train = np.random.random((15, lookback + 1, number_input_features))
+    y_train = np.random.random((15, lookahead + 1, number_target_features))
     x_shape = (lookback + 1, number_input_features)
     y_shape = (lookahead + 1, number_target_features)
 
     model = model_class(name=model_name)
-    model.train(x_train, y_train, lookback, lookahead, predict_sequence=True)
+    model.train(x_train, y_train)
     model.save(test_model_path)
 
     model_from_file = Model.load(test_model_path)
@@ -79,13 +79,14 @@ def test_predict_single_value_save_and_load(model_class, tmpdir):
     number_input_features = 3
     number_target_features = 1
 
-    x_train = np.random.random((15, number_input_features))
-    y_train = np.random.random((15, number_target_features))
+    x_train = np.random.random((15, lookback + 1, number_input_features))
+    y_train = np.random.random((15, 1, number_target_features))
+    
     x_shape = (lookback + 1, number_input_features)
     y_shape = (1, number_target_features)
 
     model = model_class(name=model_name)
-    model.train(x_train, y_train, lookback, lookahead, predict_sequence=False)
+    model.train(x_train, y_train)
     model.save(test_model_path)
 
     model_from_file = Model.load(test_model_path)

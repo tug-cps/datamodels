@@ -25,16 +25,13 @@ class SupportVectorRegression(Model):
         if arr.shape[1] == arr.shape[1] == 1:
             arr = arr.ravel()
         else:
-            raise RuntimeError(
-                "SVR cannot predict anything other than single values."
-            )
+            raise RuntimeError("SVR cannot predict anything other than single values.")
         return arr
 
-    def train_model(self, x_train, y_train, **kwargs):
-        x_train = self.reshape_x(x_train)
-        y_train = self.reshape_y(y_train)
-
-        self.model.fit(x_train, y_train)
+    def train_model(self, x, y, **kwargs):
+        x = self.reshape_x(x)
+        y = self.reshape_y(y)
+        self.model.fit(x, y)
 
     def predict_model(self, x):
         x = self.reshape_x(x)

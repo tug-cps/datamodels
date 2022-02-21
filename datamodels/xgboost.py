@@ -13,7 +13,7 @@ class XGBoost(Model):
                 "max_depth": 4,
                 "min_samples_split": 5,
                 "learning_rate": 0.01,
-                "loss": "ls",
+                "loss": "squared_error",
             }
 
         from sklearn.ensemble import GradientBoostingRegressor
@@ -36,11 +36,11 @@ class XGBoost(Model):
             )
         return arr
 
-    def train_model(self, x_train, y_train, **kwargs):
-        x_train = self.reshape_x(x_train)
-        y_train = self.reshape_y(y_train)
+    def train_model(self, x, y, **kwargs):
+        x = self.reshape_x(x)
+        y = self.reshape_y(y)
 
-        self.model.fit(x_train, y_train)
+        self.model.fit(x, y)
 
     def predict_model(self, x):
         x = self.reshape_x(x)

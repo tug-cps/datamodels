@@ -1,12 +1,9 @@
 import pickle
 
-from numpy import reshape
-
 from . import Model
 
 
 class LinearRegression(Model):
-
     def __init__(self, parameters=None, **kwargs):
         super().__init__(**kwargs)
 
@@ -14,6 +11,7 @@ class LinearRegression(Model):
             parameters = {"n_jobs": -1}
 
         from sklearn.linear_model import LinearRegression
+
         self.model = LinearRegression(**parameters)
 
     def reshape(self, arr):
@@ -23,11 +21,11 @@ class LinearRegression(Model):
             arr = arr.reshape(arr.shape[0], arr.shape[1] * arr.shape[2])
         return arr
 
-    def train_model(self, x_train, y_train, **kwargs):
-        x_train = self.reshape(x_train)
-        y_train = self.reshape(y_train)
+    def train_model(self, x, y, **kwargs):
+        x = self.reshape(x)
+        y = self.reshape(y)
 
-        self.model.fit(x_train, y_train)
+        self.model.fit(x, y)
 
     def predict_model(self, x):
         x = self.reshape(x)
@@ -35,10 +33,10 @@ class LinearRegression(Model):
 
     def save(self, path="data/models/LinearRegression"):
         super(LinearRegression, self).save(path)
-        with open(f'{path}/model.pickle', 'wb') as file:
+        with open(f"{path}/model.pickle", "wb") as file:
             pickle.dump(self.model, file)
 
     def load_model(self, path="data/models/LinearRegression"):
         super(LinearRegression, self).load_model(path)
-        with open(f'{path}/model.pickle', 'rb') as file:
+        with open(f"{path}/model.pickle", "rb") as file:
             self.model = pickle.load(file)

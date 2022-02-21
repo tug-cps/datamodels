@@ -48,26 +48,27 @@ def split(data: np.ndarray, frac: float) -> Tuple[np.ndarray, np.ndarray]:
 
 
 def get_windows(
-        features: np.ndarray,
         lookback: int,
+        features: np.ndarray,
+        lookahead: int,
         targets: np.ndarray=None,
-        lookahead: int=0,
         targets_as_sequence: bool=False
 ):
     """
     this generates feature and target windows of shapes that can be feed to a model.
 
     Parameters
-    ----------
-
-    features : array_like
-        the array containing the input features.
+    ----------  
     lookback : int
         feature window time axis; if 0, feature window is [(f_0 ... f_n)].
+    features : array_like
+        the array containing the input features.
+    lookahead : int
+        target window time axis; offset between t_0 and the end of target window.
+        even if no targets are passed this is used to get the correct feature length.
+        set to 0, if you don't need this check.  
     targets : array_like, optional
         the array containing the target features.
-    lookahead : int, optional
-        target window time axis; offset between t_0 and the end of target window.
     targets_as_sequence: bool, optional
         whether target windows are a sequence between t_0 and the lookahead or just the value at t_0 + lookahead.
 

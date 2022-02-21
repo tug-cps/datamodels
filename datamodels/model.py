@@ -7,11 +7,9 @@ import numpy as np
 from abc import abstractmethod
 
 from .processing import DataScaler, IdentityScaler
-from .processing.shape import get_windows
 
 
 class Model:
-    
     @staticmethod
     def load(path="models/EXAMPLE"):
         """
@@ -32,25 +30,39 @@ class Model:
     def __init__(
         self,
         name="",
-        x_scaler_class=IdentityScaler,
-        y_scaler_class=IdentityScaler,
         **kwargs,
     ):
         self.model_type = self.__class__.__name__
         self.name = name
+
         self.x_shape = None
         self.y_shape = None
 
-        self.x_scaler = x_scaler_class()
-        self.y_scaler = y_scaler_class()
+        self.x_scaler = IdentityScaler()
+        self.y_scaler = IdentityScaler()
+
+    def set_x_scaler(self, x_scaler: DataScaler):
+        if x_scaler.was_fitted():
+            self.x_scaler = x_scaler
+        else:
+            raise RuntimeError(
+                "you should only pass a scaler that was fit to the distribution.\n"
+                "i.e call x_scaler.fit(distribution) before setting it."
+            )
+
+    def set_y_scaler(self, y_scaler: DataScaler):
+        if y_scaler.was_fitted():
+            self.y_scaler = y_scaler
+        else:
+            raise RuntimeError(
+                "you should only pass a scaler that was fit to the distribution.\n"
+                "i.e call y_scaler.fit(distribution) before setting it."
+            )
 
     def train(
         self,
-        x_train,
-        y_train,
-        lookback: int,
-        lookahead: int,
-        predict_sequence: bool = False,
+        x,
+        y,
         shuffle_data: bool = True,
     ):
         """
@@ -59,44 +71,46 @@ class Model:
 
         Parameters
         ----------
-        x_train : array_like
-            the array containing the input features.
-        y_train : array_like
-            the array containing the target features.
-        lookback : int
-            feature window time axis; if 0, feature window is [(f_0 ... f_n)].
-        lookahead : int
-            target window time axis; offset between t_0 and the end of target window.
-        predict_sequence : bool
-            whether target window is a sequence or a sigle value,
-            if False the model predicts the value that is t_0 + lookahead.
+        x : array_like
+            the array containing the input features,
+            shape is (batch, lookback + 1, input features)
+
+        y : array_like
+            the array containing the target features,
+            shape is (batch, lookahead + 1 or 1, output features)
+
         shuffle_data : bool
             whether to shuffle the training data.
 
         """
-        self.x_scaler.fit(x_train)
-        self.y_scaler.fit(y_train)
+        if not x.ndim == 3:
+            raise RuntimeError(
+                f"x must be an array of shape (batch, lookback + 1, input features)\n"
+                f"but is {x.shape}"
+            )
 
-        x = self.x_scaler.transform(x_train)
-        y = self.y_scaler.transform(y_train)
+        if not y.ndim == 3:
+            raise RuntimeError(
+                f"y must be an array of shape (batch, lookahead + 1 or 1, output features)\n"
+                f"but is {y.shape}"
+            )
 
-        x_windows, y_windows = get_windows(
-            x, lookback, y, lookahead, targets_as_sequence=predict_sequence
-        )
+        self.x_shape = x.shape[1:]
+        self.y_shape = y.shape[1:]
+
+        x = self.x_scaler.transform(x)
+        y = self.y_scaler.transform(y)
 
         if shuffle_data:
-            indices = np.arange(x_windows.shape[0])
+            indices = np.arange(x.shape[0])
             np.random.shuffle(indices)
-            x_windows = x_windows[indices]
-            y_windows = y_windows[indices]
+            x = x[indices]
+            y = y[indices]
 
-        self.x_shape = x_windows.shape[1:]
-        self.y_shape = y_windows.shape[1:]
-
-        self.train_model(x_windows, y_windows)
+        self.train_model(x, y)
 
     @abstractmethod
-    def train_model(self, x_train, y_train):
+    def train_model(self, x, y):
         raise NotImplementedError(
             "you called the train function on the abstract model class."
         )
@@ -110,13 +124,14 @@ class Model:
         ----------
 
         x : array_like
-            (batch of) feature window the model should predict for, shape is (batch, lookback, input features)
+            (batch of) feature window the model should predict for,
+            shape is (batch, lookback + 1, input features)
 
         Returns
         -------
         array_like
             the target windows
-            shape (batch, lookahead or 1 [depending on whether the model was trained to predict sequences or not], target features)
+            shape (batch, lookahead + 1 or 1 [depending on whether the model was trained to predict sequences or not], target features)
 
         """
 
@@ -147,9 +162,7 @@ class Model:
         else:
             os.mkdir(path)
         with open(f"{path}/params.pickle", "wb") as file:
-            pickle.dump(
-                [self.model_type, self.name, self.x_shape, self.y_shape], file
-            )
+            pickle.dump([self.model_type, self.name, self.x_shape, self.y_shape], file)
 
         self.x_scaler.save(f"{path}/x_scaler.pickle")
         self.y_scaler.save(f"{path}/y_scaler.pickle")

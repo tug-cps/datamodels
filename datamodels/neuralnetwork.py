@@ -55,7 +55,7 @@ def compile_model(model: keras.Model):
     model.compile(loss="mse", optimizer=optimizer)
 
 
-def train_model(model: keras.Model, x_train, y_train) -> keras.callbacks.History:
+def train_model(model: keras.Model, x, y) -> keras.callbacks.History:
     """
     DO NOT CHANGE this file if you want to use a different train function |
     create your own train function that matches this function's signature and pass it to the network's
@@ -63,10 +63,10 @@ def train_model(model: keras.Model, x_train, y_train) -> keras.callbacks.History
 
     Parameters
     ----------
-    x_train : array_like
+    x : array_like
         a batch of feature windows, shape is (batch, lookback + 1, input features).
 
-    y_train : array_like
+    y : array_like
         a batch of target windows, shape is (batch, lookahead + 1 or 1, target features).
     
     Returns
@@ -76,7 +76,7 @@ def train_model(model: keras.Model, x_train, y_train) -> keras.callbacks.History
 
     """
 
-    return model.fit(x_train, y_train, epochs=10, batch_size=24, validation_split=0.2)
+    return model.fit(x, y, epochs=10, batch_size=24, validation_split=0.2)
 
 
 class NeuralNetwork(Model):
@@ -106,14 +106,14 @@ class NeuralNetwork(Model):
         self.model = None
         self.history = None
 
-    def train_model(self, x_train, y_train, **kwargs):
+    def train_model(self, x, y, **kwargs):
         self.model = self.build_function(self.x_shape, self.y_shape)
 
         self.compile_function(self.model)
 
         print(self.model.summary())
 
-        self.history = self.train_function(self.model, x_train, y_train).history
+        self.history = self.train_function(self.model, x, y).history
 
     def predict_model(self, x):
         return self.model.predict(x)

@@ -28,11 +28,10 @@ class RandomForestRegression(Model):
             arr = arr.reshape(arr.shape[0], arr.shape[1] * arr.shape[2])
         return arr
 
-    def train_model(self, x_train, y_train, **kwargs):
-        x_train = self.reshape(x_train)
-        y_train = self.reshape(y_train)
-
-        self.model.fit(x_train, y_train)
+    def train_model(self, x, y, **kwargs):
+        x = self.reshape(x)
+        y = self.reshape(y)
+        self.model.fit(x, y)
 
     def predict_model(self, x):
         x = self.reshape(x)
