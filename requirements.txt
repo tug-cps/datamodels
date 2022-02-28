@@ -3,5 +3,7 @@ numpy
 scikit-learn
 tensorflow
 gplearn
+statsmodels
+cvxopt
 
 pytest
