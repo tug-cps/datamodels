@@ -4,10 +4,10 @@ import numpy as np
 from . import Model
 
 from statsmodels.regression.linear_model import WLS
-from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.base import BaseEstimator
 
 
-class wls_wrapper(BaseEstimator, ClassifierMixin):
+class wls_wrapper(BaseEstimator):
     def __init__(self, **params):
         self.set_params(**params)
 
