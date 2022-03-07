@@ -30,8 +30,10 @@ class FeatureExpansion:
         return feature_names
 
     def get_feature_names(self, feature_names=None):
-        features = self.get_feature_names_model(feature_names)
-        return [feature for feature, select in zip(features, self.selected_features) if select] if self.selected_features is not None else features
+        feature_names_tr = self.get_feature_names_model(feature_names)
+        if self.selected_features is not None:
+            return [feature for feature, select in zip(feature_names_tr, self.selected_features) if select]
+        return feature_names_tr
 
     def fit(self, x=None, y=None):
         if x.ndim == 3:
@@ -39,10 +41,15 @@ class FeatureExpansion:
         else:
             self.fit_transformer(x, y)
 
+    def fit_transform(self, x=None, y=None):
+        self.fit(x, y)
+        return self.transform(x)
+
     @abstractmethod
     def fit_transformer(self, x=None, y=None):
         raise NotImplementedError()
 
+    @abstractmethod
     def transform_samples(self, x=None):
         raise NotImplementedError()
 
@@ -50,16 +57,13 @@ class FeatureExpansion:
         transformed_features = np.zeros(x.shape)
         if x.ndim == 3:
             lookback_states = x.shape[1]
-            for i in range(lookback_states):
-                transformed_features[:,i,:] = self.transform_samples(x[:,i,:])
+            transformed_features = np.concatenate([np.expand_dims(self.transform_samples(x[:, i, :]),axis=1) for i in range(lookback_states)], axis=1)
             if self.selected_features is not None:
-                transformed_features = transformed_features[:,:,self.selected_features]
-
+                return transformed_features[:,:, self.selected_features]
         if x.ndim == 2:
             transformed_features = self.transform_samples(x)
             if self.selected_features is not None:
-                transformed_features = transformed_features[:,self.selected_features]
-
+                return transformed_features[:,self.selected_features]
         return transformed_features
 
     @abstractmethod
