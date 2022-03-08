@@ -19,6 +19,7 @@ from . cnnlstm import ConvolutionLSTM
 from . ridgeregression import RidgeRegression
 from . lassoregression import LassoRegression
 from . symbolicregression import SymbolicRegression
-from .weighted_linear_regression import WeightedLS
+from . weighted_linear_regression import WeightedLS
+from . rulefit import RuleFitRegression
 # wrappers
 from . import wrappers
