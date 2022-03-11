@@ -7,10 +7,11 @@ from rulefit.rulefit import RuleFit
 
 
 class RuleFitRegression(Model):
+    feature_names = None
+
     def __init__(self, parameters=None, **kwargs):
         super().__init__(**kwargs)
-        if parameters is None:
-            parameters = {}
+        parameters = {} if parameters is None else parameters
         self.model = RuleFit(**parameters)
 
     def reshape_data(self, x):
@@ -19,12 +20,14 @@ class RuleFitRegression(Model):
         return x
 
     def train_model(self, x_train, y_train, **kwargs):
-        if y_train.ndim == 2:
-            if y_train.shape[1] <= 1:
-                y_train = y_train.ravel()
-            else:
-                raise ValueError('The RuleFit currently only supports model with a single output feature.')
-        self.model.fit(x_train,y_train)
+        if y_train.ndim > 1:
+            if y_train.shape[1] > 1:
+                raise ValueError('The RuleFit currently only supports models with a single output feature.')
+        y_train = y_train.ravel()
+        self.model.fit(x_train,y_train, self.feature_names)
+
+    def set_feature_names(self, feature_names=None):
+        self.feature_names = feature_names
 
     def predict_model(self, x):
         result = self.model.predict(x)

@@ -97,19 +97,11 @@ Expands features by spline bases -
 Returns expanded features 
 """
 class SplineInterpolator(FeatureExpansion):
-    degree: int = 2
-    n_knots: int = 4
-    extrapolation: str = "periodic"
-    model = None
-
-    def __init__(self, degree=2, n_knots=4, extrapolation="periodic"):
-        self.degree = degree
-        self.n_knots = n_knots
-        self.extrapolation = extrapolation
-        self.model = SplineTransformer(n_knots=self.n_knots, degree=self.degree, extrapolation=self.extrapolation)
+    def __init__(self, **kwargs):
+        self.model = SplineTransformer(**kwargs)
 
     def set_attrs(self, attrs):
-        for i, name in enumerate(["degree", "n_knots", "extrapolation", "model"]):
+        for i, name in enumerate(["selected_features", "model"]):
             setattr(self, name, attrs[i])
 
     def get_feature_names_model(self, feature_names=None):
@@ -126,9 +118,6 @@ class SplineInterpolator(FeatureExpansion):
             pickle.dump([
                 self.__class__.__name__,
                 self.selected_features,
-                self.degree,
-                self.n_knots,
-                self.extrapolation,
                 self.model], file)
 
 
@@ -140,19 +129,14 @@ https://scikit-learn.org/dev/modules/generated/sklearn.preprocessing.PolynomialF
 Returns expanded features and also the names
 """
 class PolynomialExpansion(FeatureExpansion):
-    degree: int = 2
-    include_bias = False
     model = None
 
-    def __init__(self, degree=2, include_bias=False, **kwargs):
-        self.degree = degree
-        self.include_bias = include_bias
-        self.model = PolynomialFeatures(degree=self.degree, include_bias=include_bias, **kwargs)
+    def __init__(self, **kwargs):
+        self.model = PolynomialFeatures(**kwargs)
 
     def set_attrs(self, attrs):
-        for i, name in enumerate(["selected_features", "degree", "include_bias", "model"]):
+        for i, name in enumerate(["selected_features", "model"]):
             setattr(self, name, attrs[i])
-
 
     def fit_transformer(self, x=None, y=None):
         self.model = self.model.fit(x,y)
@@ -167,9 +151,7 @@ class PolynomialExpansion(FeatureExpansion):
         with open(path, 'wb') as file:
             pickle.dump([
                 self.__class__.__name__,
-                self.selected_features,
-                self.degree,
-                self.include_bias, self.model], file)
+                self.selected_features, self.model], file)
 
 """
 Identity - if no expansion is used
