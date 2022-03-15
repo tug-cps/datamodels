@@ -37,7 +37,7 @@ def rsquared(y_true, y_pred):
 def rsquared_adj(y_true, y_pred, n_samples, n_predictors):
     if n_samples == n_predictors + 1:
         raise ValueError('n_samples must not be equal n_predictors + 1.')
-    return 1 - rsquared(y_true,y_pred) * (n_samples - 1) / (n_samples - n_predictors - 1)
+    return 1 - (1 - rsquared(y_true,y_pred)) * (n_samples - 1) / (n_samples - n_predictors - 1)
 
 def cvrmse(y_true, y_pred):
     prevent_incorrect_dimensions(y_true, y_pred)
