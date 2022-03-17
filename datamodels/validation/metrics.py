@@ -39,6 +39,22 @@ def rsquared_adj(y_true, y_pred, n_samples, n_predictors):
         raise ValueError('n_samples must not be equal n_predictors + 1.')
     return 1 - (1 - rsquared(y_true,y_pred)) * (n_samples - 1) / (n_samples - n_predictors - 1)
 
+
+def rmse(y_true, y_pred):
+    prevent_incorrect_dimensions(y_true, y_pred)
+    return np.sqrt(np.square(np.subtract(y_true, y_pred)).mean())
+
+
+def nrmse(y_true, y_pred):
+    prevent_incorrect_dimensions(y_true, y_pred)
+    return np.sqrt(np.square(np.subtract(y_true, y_pred)).mean()) / prevent_zeros(np.nanmax(y_true) - np.nanmin(y_true))
+
+
+def mae(y_true, y_pred):
+    prevent_incorrect_dimensions(y_true, y_pred)
+    return np.abs(y_true - y_pred).mean()
+
+
 def cvrmse(y_true, y_pred):
     prevent_incorrect_dimensions(y_true, y_pred)
     mse = np.square(np.subtract(y_true, y_pred)).mean()
@@ -50,9 +66,18 @@ def mape(y_true, y_pred):
     return (100 * np.abs(y_true - y_pred) / prevent_zeros(y_true)).mean()
 
 
+def nmae(y_true, y_pred):
+    prevent_incorrect_dimensions(y_true, y_pred)
+    return np.abs(y_true - y_pred).mean() / prevent_zeros(np.nanmax(y_true) - np.nanmin(y_true))
+
+
 def all_metrics(y_true, y_pred):
     return {
         'R2': rsquared(y_true, y_pred),
         'CV-RMS': cvrmse(y_true, y_pred),
         'MAPE': mape(y_true, y_pred),
+        'MAE': mae(y_true, y_pred),
+        'NMAE': nmae(y_true, y_pred),
+        'RMS': rmse(y_true, y_pred),
+        'NRMS': nrmse(y_true, y_pred)
     }
