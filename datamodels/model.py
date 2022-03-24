@@ -32,6 +32,7 @@ class Model:
         self.model_type = self.__class__.__name__
         self.name = name
         self.input_shape = None
+        self.feature_names = None
 
         self.expanders = expanders if expanders is not None else [IdentityExpander()]
         self.x_scaler = x_scaler_class()
@@ -153,7 +154,8 @@ class Model:
         with open(f'{path}/params.pickle', 'wb') as file:
             pickle.dump([self.model_type, 
                 self.name, 
-                self.input_shape, 
+                self.input_shape,
+                self.feature_names,
             ], file)
 
         self.x_scaler.save(f'{path}/x_scaler.pickle')
@@ -167,7 +169,33 @@ class Model:
             params = pickle.load(file)
             self.name = params[1]
             self.input_shape = params[2]
+            self.feature_names = params[3]
         
         self.x_scaler = DataScaler.load(f'{path}/x_scaler.pickle')
         self.y_scaler = DataScaler.load(f'{path}/y_scaler.pickle')
         self.expanders = FeatureExpansion.load_expanders(path)
+
+
+    def set_feature_names(self, feature_names):
+        """ Set input feature names
+            DO NOT OVERRIDE THIS METHOD
+
+            to implement the set feature names function for different models override set_feature_names_model
+        """
+        self.feature_names = feature_names
+        # If necessary, additional steps in feature name setting
+        self.set_feature_names_model(feature_names)
+
+    def get_expanded_feature_names(self):
+        feature_names = None
+        # Recursively expand feature names
+        for expander in self.expanders:
+            feature_names = expander.get_feature_names(self.feature_names)
+        return feature_names
+
+    def set_feature_names_model(self, feature_names):
+        """ Internal method - should be overridden by child classes """
+        pass
+
+    def get_feature_names_model(self):
+        return self.get_expanded_feature_names()

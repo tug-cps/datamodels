@@ -26,8 +26,9 @@ class FeatureExpansion:
     def set_feature_select(self, selected_features):
         self.selected_features = selected_features
 
+    @abstractmethod
     def get_feature_names_model(self, feature_names=None):
-        return feature_names
+        raise NotImplementedError()
 
     def get_feature_names(self, feature_names=None):
         feature_names_tr = self.get_feature_names_model(feature_names)
@@ -169,6 +170,9 @@ class IdentityExpander(FeatureExpansion):
 
     def transform_samples(self, x=None):
         return x
+
+    def get_feature_names_model(self, feature_names=None):
+        return feature_names
 
     def save(self, path="expander.pickle"):
         with open(path, 'wb') as file:

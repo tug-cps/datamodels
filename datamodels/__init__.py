@@ -6,6 +6,8 @@ from . model import Model
 
 # These MUST be imported after the base class
 
+from . linear_model import LinearModel
+
 # models
 from . linearregression import LinearRegression
 from . neuralnetwork import NeuralNetwork
