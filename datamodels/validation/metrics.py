@@ -1,6 +1,6 @@
 import copy
 import numpy as np
-
+from sklearn.metrics import r2_score
 
 def prevent_zeros(value):
     """
@@ -30,8 +30,7 @@ def prevent_incorrect_dimensions(y_true, y_pred):
 
 def rsquared(y_true, y_pred):
     prevent_incorrect_dimensions(y_true, y_pred)
-    correlation_coefficients = np.corrcoef(y_true.flatten(), y_pred.flatten())
-    return correlation_coefficients[0, 1] ** 2
+    return r2_score(y_true, y_pred)
 
 
 def rsquared_adj(y_true, y_pred, n_samples, n_predictors):
