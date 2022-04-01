@@ -30,7 +30,13 @@ def prevent_incorrect_dimensions(y_true, y_pred):
 
 def rsquared(y_true, y_pred):
     prevent_incorrect_dimensions(y_true, y_pred)
-    return r2_score(y_true, y_pred)
+    correlation_coefficients = np.corrcoef(y_true.flatten(), y_pred.flatten())
+    return correlation_coefficients[0, 1] ** 2
+
+
+def rsquared_sklearn(y_true, y_pred):
+    prevent_incorrect_dimensions(y_true, y_pred)
+    return r2_score(y_true,y_pred)
 
 
 def rsquared_adj(y_true, y_pred, n_samples, n_predictors):
@@ -75,6 +81,7 @@ def all_metrics(y_true, y_pred):
         'R2': rsquared(y_true, y_pred),
         'CV-RMS': cvrmse(y_true, y_pred),
         'MAPE': mape(y_true, y_pred),
+        'R2_SKLEARN':rsquared_sklearn(y_true,y_pred),
         'MAE': mae(y_true, y_pred),
         'NMAE': nmae(y_true, y_pred),
         'RMS': rmse(y_true, y_pred),
