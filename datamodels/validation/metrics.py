@@ -2,6 +2,7 @@ import copy
 import numpy as np
 from sklearn.metrics import r2_score
 
+
 def prevent_zeros(value):
     """
     this ensures that the value does not contain zeros.
@@ -28,6 +29,7 @@ def prevent_incorrect_dimensions(y_true, y_pred):
                          f'(samples, 1) or (samples, )\n'
                          f'y_true was: {y_true.shape}, y_pred was: {y_pred.shape}')
 
+
 def rsquared(y_true, y_pred):
     prevent_incorrect_dimensions(y_true, y_pred)
     correlation_coefficients = np.corrcoef(y_true.flatten(), y_pred.flatten())
@@ -40,9 +42,17 @@ def rsquared_sklearn(y_true, y_pred):
 
 
 def rsquared_adj(y_true, y_pred, n_samples, n_predictors):
+    prevent_incorrect_dimensions(y_true, y_pred)
     if n_samples == n_predictors + 1:
         raise ValueError('n_samples must not be equal n_predictors + 1.')
-    return 1 - (1 - rsquared(y_true,y_pred)) * (n_samples - 1) / (n_samples - n_predictors - 1)
+    return 1 - (1 - rsquared(y_true, y_pred)) * (n_samples - 1) / (n_samples - n_predictors - 1)
+
+
+def rsquared_sklearn_adj(y_true, y_pred, n_samples, n_predictors):
+    prevent_incorrect_dimensions(y_true, y_pred)
+    if n_samples == n_predictors + 1:
+        raise ValueError('n_samples must not be equal n_predictors + 1.')
+    return 1 - (1 - rsquared(y_true, y_pred)) * (n_samples - 1) / (n_samples - n_predictors - 1)
 
 
 def rmse(y_true, y_pred):
@@ -81,7 +91,7 @@ def all_metrics(y_true, y_pred):
         'R2': rsquared(y_true, y_pred),
         'CV-RMS': cvrmse(y_true, y_pred),
         'MAPE': mape(y_true, y_pred),
-        'R2_SKLEARN':rsquared_sklearn(y_true,y_pred),
+        'R2_SKLEARN':rsquared_sklearn(y_true, y_pred),
         'MAE': mae(y_true, y_pred),
         'NMAE': nmae(y_true, y_pred),
         'RMS': rmse(y_true, y_pred),
