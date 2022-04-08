@@ -52,7 +52,7 @@ def rsquared_sklearn_adj(y_true, y_pred, n_samples, n_predictors):
     prevent_incorrect_dimensions(y_true, y_pred)
     if n_samples == n_predictors + 1:
         raise ValueError('n_samples must not be equal n_predictors + 1.')
-    return 1 - (1 - rsquared(y_true, y_pred)) * (n_samples - 1) / (n_samples - n_predictors - 1)
+    return 1 - (1 - rsquared_sklearn(y_true, y_pred)) * (n_samples - 1) / (n_samples - n_predictors - 1)
 
 
 def rmse(y_true, y_pred):
