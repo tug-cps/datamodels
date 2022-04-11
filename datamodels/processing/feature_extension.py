@@ -8,6 +8,7 @@ from sklearn.preprocessing import SplineTransformer, PolynomialFeatures
 from abc import abstractmethod
 
 class FeatureExpansion:
+    features_to_expand: List[bool] = None
     selected_features: List[bool] = None
     @staticmethod
     def load(path='expander.pickle'):
@@ -31,16 +32,17 @@ class FeatureExpansion:
         raise NotImplementedError()
 
     def get_feature_names(self, feature_names=None):
-        feature_names_tr = self.get_feature_names_model(feature_names)
-        if self.selected_features is not None:
-            return [feature for feature, select in zip(feature_names_tr, self.selected_features) if select]
-        return feature_names_tr
+        feature_names_to_expand = np.array(feature_names)[self.features_to_expand] if self.features_to_expand is not None else feature_names
+        feature_names_basic = list(np.array(feature_names)[np.bitwise_not(self.features_to_expand)]) if self.features_to_expand is not None else []
+        # Add: feature names basic features + feature names expanded features
+        feature_names_tr = feature_names_basic + list(self.get_feature_names_model(feature_names_to_expand))
+        return list(np.array(feature_names_tr)[self.selected_features]) if self.selected_features is not None else feature_names_tr
 
     def fit(self, x=None, y=None):
         if x.ndim == 3:
-            self.fit_transformer(x[:,0, :],y)
-        else:
-            self.fit_transformer(x, y)
+            x = x.reshape((x.shape[0], x.shape[1] * x.shape[2]))
+        x_to_expand = x[:,self.features_to_expand] if self.features_to_expand is not None else x
+        self.fit_transformer(x_to_expand, y)
 
     def fit_transform(self, x=None, y=None):
         self.fit(x, y)
@@ -55,24 +57,24 @@ class FeatureExpansion:
         raise NotImplementedError()
 
     def transform(self, x=None):
-        transformed_features = np.zeros(x.shape)
-        if x.ndim == 3:
-            lookback_states = x.shape[1]
-            transformed_features = np.concatenate([np.expand_dims(self.transform_samples(x[:, i, :]),axis=1) for i in range(lookback_states)], axis=1)
-            if self.selected_features is not None:
-                return transformed_features[:,:, self.selected_features]
-        if x.ndim == 2:
-            transformed_features = self.transform_samples(x)
-            if self.selected_features is not None:
-                return transformed_features[:,self.selected_features]
-        return transformed_features
+        # Reshape if necessary
+        x_reshaped = x.reshape((x.shape[0], x.shape[1] * x.shape[2])) if x.ndim == 3 else x
+        # Select features to expand
+        x_to_expand = x_reshaped[:, self.features_to_expand] if self.features_to_expand is not None else x_reshaped
+        # Transform samples
+        x_expanded = self.transform_samples(x_to_expand)
+        # Add basic features to expanded features if necessary
+        x_expanded = np.hstack((x_reshaped[:, np.bitwise_not(self.features_to_expand)], x_expanded)) if self.features_to_expand is not None else x_expanded
+        # Select features if necessary
+        x_expanded = x_expanded[:, self.selected_features] if self.selected_features is not None else x_expanded
+        # Reshape to 3D if necessary
+        x_expanded = x_expanded.reshape((x.shape[0], x.shape[1], int(x_expanded.shape[1] / x.shape[1]))) if x.ndim == 3 else x_expanded
+        return x_expanded
 
     @abstractmethod
     def save(self, path='expander.pickle'):
         if os.path.isfile(path):
             print(f'{path} already exists, overwriting ..')
-
-
 
     @staticmethod
     def load_expanders(path):
@@ -83,7 +85,6 @@ class FeatureExpansion:
                 if "expander" in filename:
                     expanders.append(FeatureExpansion.load(f'{path}/{filename}'))
         return expanders
-
 
     @staticmethod
     def save_expanders(path, expanders):

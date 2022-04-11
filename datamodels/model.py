@@ -187,10 +187,10 @@ class Model:
         self.set_feature_names_model(feature_names)
 
     def get_expanded_feature_names(self):
-        feature_names = None
+        feature_names = self.feature_names
         # Recursively expand feature names
         for expander in self.expanders:
-            feature_names = expander.get_feature_names(self.feature_names)
+            feature_names = expander.get_feature_names(feature_names)
         return feature_names
 
     def set_feature_names_model(self, feature_names):
