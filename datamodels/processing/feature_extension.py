@@ -35,14 +35,18 @@ class FeatureExpansion:
         feature_names_to_expand = np.array(feature_names)[self.features_to_expand] if self.features_to_expand is not None else feature_names
         feature_names_basic = list(np.array(feature_names)[np.bitwise_not(self.features_to_expand)]) if self.features_to_expand is not None else []
         # Add: feature names basic features + feature names expanded features
-        feature_names_tr = feature_names_basic + list(self.get_feature_names_model(feature_names_to_expand))
+        if len(feature_names_to_expand) > 0:
+            feature_names_tr = feature_names_basic + list(self.get_feature_names_model(feature_names_to_expand))
+        else:
+            feature_names_tr = feature_names_basic
         return list(np.array(feature_names_tr)[self.selected_features]) if self.selected_features is not None else feature_names_tr
 
     def fit(self, x=None, y=None):
         if x.ndim == 3:
             x = x.reshape((x.shape[0], x.shape[1] * x.shape[2]))
         x_to_expand = x[:,self.features_to_expand] if self.features_to_expand is not None else x
-        self.fit_transformer(x_to_expand, y)
+        if x_to_expand.shape[1] > 0:
+            self.fit_transformer(x_to_expand, y)
 
     def fit_transform(self, x=None, y=None):
         self.fit(x, y)
@@ -60,11 +64,17 @@ class FeatureExpansion:
         # Reshape if necessary
         x_reshaped = x.reshape((x.shape[0], x.shape[1] * x.shape[2])) if x.ndim == 3 else x
         # Select features to expand
-        x_to_expand = x_reshaped[:, self.features_to_expand] if self.features_to_expand is not None else x_reshaped
-        # Transform samples
-        x_expanded = self.transform_samples(x_to_expand)
-        # Add basic features to expanded features if necessary
-        x_expanded = np.hstack((x_reshaped[:, np.bitwise_not(self.features_to_expand)], x_expanded)) if self.features_to_expand is not None else x_expanded
+        if self.features_to_expand is not None:
+            x_to_expand = x_reshaped[:, self.features_to_expand]
+            x_basic = x_reshaped[:, np.bitwise_not(self.features_to_expand)]
+            if x_to_expand.shape[1] > 0:
+                x_expanded = self.transform_samples(x_to_expand)
+                # Add basic features to expanded features
+                x_expanded = np.hstack((x_basic, x_expanded))
+            else:
+                x_expanded = x_basic
+        else:
+            x_expanded = self.transform_samples(x_reshaped)
         # Select features if necessary
         x_expanded = x_expanded[:, self.selected_features] if self.selected_features is not None else x_expanded
         # Reshape to 3D if necessary
