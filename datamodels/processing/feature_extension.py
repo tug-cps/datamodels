@@ -5,17 +5,18 @@ import pickle
 from typing import List
 
 from sklearn.preprocessing import SplineTransformer, PolynomialFeatures
+from sklearn.base import TransformerMixin
 from abc import abstractmethod
 
-class FeatureExpansion:
+
+class FeatureExpansion(TransformerMixin):
     features_to_expand: List[bool] = None
     selected_features: List[bool] = None
     @staticmethod
     def load(path='expander.pickle'):
         with open(path, 'rb') as file:
             attrs = pickle.load(file)
-            type = attrs[0]
-            instance = getattr(sys.modules['datamodels.processing'], type)()
+            instance = getattr(sys.modules['datamodels.processing'], attrs[0])()
             instance.set_attrs(attrs[1:])
 
         return instance
@@ -32,14 +33,16 @@ class FeatureExpansion:
         raise NotImplementedError()
 
     def get_feature_names(self, feature_names=None):
-        feature_names_to_expand = np.array(feature_names)[self.features_to_expand] if self.features_to_expand is not None else feature_names
-        feature_names_basic = list(np.array(feature_names)[np.bitwise_not(self.features_to_expand)]) if self.features_to_expand is not None else []
+        feature_names = np.array(feature_names)
+        feature_names_to_expand = feature_names[self.features_to_expand] if self.features_to_expand is not None else feature_names
+        feature_names_basic = feature_names[np.bitwise_not(self.features_to_expand)] if self.features_to_expand is not None else []
         # Add: feature names basic features + feature names expanded features
         if len(feature_names_to_expand) > 0:
-            feature_names_tr = feature_names_basic + list(self.get_feature_names_model(feature_names_to_expand))
+            feature_names_tr = np.hstack((feature_names_basic, np.array(self.get_feature_names_model(feature_names_to_expand))))
         else:
             feature_names_tr = feature_names_basic
-        return list(np.array(feature_names_tr)[self.selected_features]) if self.selected_features is not None else feature_names_tr
+        feature_names_tr = feature_names_tr[self.selected_features] if self.selected_features is not None else feature_names_tr
+        return list(feature_names_tr)
 
     def fit(self, x=None, y=None):
         if x.ndim == 3:
@@ -48,9 +51,9 @@ class FeatureExpansion:
         if x_to_expand.shape[1] > 0:
             self.fit_transformer(x_to_expand, y)
 
-    def fit_transform(self, x=None, y=None):
-        self.fit(x, y)
-        return self.transform(x)
+    def fit_transform(self, X, y=None, **fit_params):
+        self.fit(X, y)
+        return self.transform(X)
 
     @abstractmethod
     def fit_transformer(self, x=None, y=None):
