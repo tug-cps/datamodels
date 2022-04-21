@@ -40,3 +40,7 @@ class RuleFitRegression(Model):
         super().load_model(path)
         with open(f'{path}/model.pickle', 'rb') as file:
             [self.model] = pickle.load(file)
+
+    def get_rules(self):
+        rules = self.model.get_rules()
+        return rules[rules.coef != 0].sort_values("support", ascending=False)

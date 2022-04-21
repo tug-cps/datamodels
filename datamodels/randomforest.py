@@ -47,3 +47,6 @@ class RandomForestRegression(Model):
         super(RandomForestRegression, self).load_model(path)
         with open(f'{path}/model.pickle', 'rb') as file:
             self.model = pickle.load(file)
+
+    def get_coef(self):
+        return self.model.feature_importances_

@@ -23,12 +23,12 @@ class wls_wrapper(BaseEstimator):
     def fit(self, x_train, y_train, **kwargs):
         y_train = y_train.reshape(y_train.shape[0])
         self.estimator = WLS(y_train, x_train)
-        self.coeffs = self.estimator.fit_regularized(method=self.method, alpha=self.alpha, L1_wt=self.l1_wt, **kwargs).params
+        self.coef_ = self.estimator.fit_regularized(method=self.method, alpha=self.alpha, L1_wt=self.l1_wt, **kwargs).params
 
     def predict(self, x_test, **kwargs):
         if self.estimator is None:
             raise ValueError('The model is not trained yet.')
-        return np.array(self.estimator.predict(self.coeffs, exog=x_test))
+        return np.array(self.estimator.predict(self.coef_, exog=x_test))
 
 
 class WeightedLS(LinearModel):
