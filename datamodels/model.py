@@ -28,13 +28,13 @@ class Model:
         instance.load_model(path)
         return instance
 
-    def __init__(self, name='', x_scaler_class=IdentityScaler, y_scaler_class=IdentityScaler, expanders=None, **kwargs):
+    def __init__(self, name='', x_scaler_class=IdentityScaler, y_scaler_class=IdentityScaler, **kwargs):
         self.model_type = self.__class__.__name__
         self.name = name
         self.input_shape = None
         self.feature_names = None
 
-        self.expanders = expanders if expanders is not None else [IdentityExpander()]
+        self.expanders = FeatureExpansion.create_pipeline(kwargs.get('expanders', [IdentityExpander()]))
         self.x_scaler = x_scaler_class()
         self.y_scaler = y_scaler_class()
 
@@ -90,9 +90,7 @@ class Model:
         """
             Feature Expansion: polynomial or spline expansion - use all expanders
         """
-        for expander in self.expanders:
-            expander.fit(x_train, y_train)
-            x_train = expander.transform(x_train)
+        x_train = self.expanders.fit_transform(x_train)
 
         self.train_model(x_train, y_train)
 
@@ -126,8 +124,7 @@ class Model:
         x = self.x_scaler.transform(x)
 
         ''' Expand features '''
-        for expander in self.expanders:
-            x = expander.transform(x)
+        x = self.expanders.transform(x)
 
         y = self.predict_model(x)
 
@@ -187,11 +184,7 @@ class Model:
         self.set_feature_names_model(feature_names)
 
     def get_expanded_feature_names(self):
-        feature_names = self.feature_names
-        # Recursively expand feature names
-        for expander in self.expanders:
-            feature_names = expander.get_feature_names(feature_names)
-        return feature_names
+        return self.expanders.get_feature_names_out(self.feature_names)
 
     def set_feature_names_model(self, feature_names):
         """ Internal method - should be overridden by child classes """

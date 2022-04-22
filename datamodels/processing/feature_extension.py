@@ -4,6 +4,7 @@ import numpy as np
 import pickle
 from typing import List
 
+from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import SplineTransformer, PolynomialFeatures
 from sklearn.base import TransformerMixin
 from abc import abstractmethod
@@ -12,6 +13,7 @@ from abc import abstractmethod
 class FeatureExpansion(TransformerMixin):
     features_to_expand: List[bool] = None
     selected_features: List[bool] = None
+
     @staticmethod
     def load(path='expander.pickle'):
         with open(path, 'rb') as file:
@@ -32,7 +34,7 @@ class FeatureExpansion(TransformerMixin):
     def get_feature_names_model(self, feature_names=None):
         raise NotImplementedError()
 
-    def get_feature_names(self, feature_names=None):
+    def get_feature_names_out(self, feature_names=None):
         feature_names = np.array(feature_names)
         feature_names_to_expand = feature_names[self.features_to_expand] if self.features_to_expand is not None else feature_names
         feature_names_basic = feature_names[np.bitwise_not(self.features_to_expand)] if self.features_to_expand is not None else []
@@ -97,12 +99,20 @@ class FeatureExpansion(TransformerMixin):
                 print(filename)
                 if "expander" in filename:
                     expanders.append(FeatureExpansion.load(f'{path}/{filename}'))
-        return expanders
+        return FeatureExpansion.create_pipeline(expanders)
 
     @staticmethod
-    def save_expanders(path, expanders):
-        for index, expander in enumerate(expanders):
+    def save_expanders(path, expander_pipeline):
+        for index, expander in enumerate(FeatureExpansion.get_list_expanders(expander_pipeline)):
             expander.save(f'{path}/expander_{index}.pickle')
+
+    @staticmethod
+    def create_pipeline(list_expanders):
+        return make_pipeline(*list_expanders, 'passthrough')
+
+    @staticmethod
+    def get_list_expanders(expander_pipeline):
+        return [expander for (name, expander) in expander_pipeline.steps[:-1]]
 
 
 """
