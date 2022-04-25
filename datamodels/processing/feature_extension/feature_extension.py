@@ -1,27 +1,16 @@
 import os
-import sys
 import numpy as np
-import pickle
 from typing import List
 
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import SplineTransformer, PolynomialFeatures
 from sklearn.base import TransformerMixin
 from abc import abstractmethod
+from .StoreInterface import StoreInterface
 
-
-class FeatureExpansion(TransformerMixin):
+class FeatureExpansion(TransformerMixin, StoreInterface):
     features_to_expand: List[bool] = None
     selected_features: List[bool] = None
-
-    @staticmethod
-    def load(path='expander.pickle'):
-        with open(path, 'rb') as file:
-            attrs = pickle.load(file)
-            instance = getattr(sys.modules['datamodels.processing'], attrs[0])()
-            instance.set_attrs(attrs[1:])
-
-        return instance
 
     @abstractmethod
     def set_attrs(self, attrs):
@@ -88,8 +77,7 @@ class FeatureExpansion(TransformerMixin):
 
     @abstractmethod
     def save(self, path='expander.pickle'):
-        if os.path.isfile(path):
-            print(f'{path} already exists, overwriting ..')
+        raise NotImplementedError()
 
     @staticmethod
     def load_expanders(path):
@@ -98,13 +86,13 @@ class FeatureExpansion(TransformerMixin):
             for filename in files:
                 print(filename)
                 if "expander" in filename:
-                    expanders.append(FeatureExpansion.load(f'{path}/{filename}'))
+                    expanders.append(FeatureExpansion.load_pkl(path, filename))
         return FeatureExpansion.create_pipeline(expanders)
 
     @staticmethod
     def save_expanders(path, expander_pipeline):
         for index, expander in enumerate(FeatureExpansion.get_list_expanders(expander_pipeline)):
-            expander.save(f'{path}/expander_{index}.pickle')
+            expander.save_pkl(path,f'expander_{index}.pickle')
 
     @staticmethod
     def create_pipeline(list_expanders):
@@ -138,13 +126,6 @@ class SplineInterpolator(FeatureExpansion):
     def transform_samples(self, x=None):
         return self.model.transform(x)
 
-    def save(self, path="expander.pickle"):
-        with open(path, 'wb') as file:
-            pickle.dump([
-                self.__class__.__name__,
-                self.selected_features,
-                self.model], file)
-
 
 
 """
@@ -172,11 +153,6 @@ class PolynomialExpansion(FeatureExpansion):
     def get_feature_names_model(self, feature_names=None):
         return self.model.get_feature_names_out(feature_names)
 
-    def save(self, path="expander.pickle"):
-        with open(path, 'wb') as file:
-            pickle.dump([
-                self.__class__.__name__,
-                self.selected_features, self.model], file)
 
 """
 Identity - if no expansion is used
@@ -198,7 +174,4 @@ class IdentityExpander(FeatureExpansion):
     def get_feature_names_model(self, feature_names=None):
         return feature_names
 
-    def save(self, path="expander.pickle"):
-        with open(path, 'wb') as file:
-            pickle.dump([self.__class__.__name__], file)
 
