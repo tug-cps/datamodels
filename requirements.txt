@@ -1,5 +1,6 @@
 numpy
 
+h5py
 scikit-learn
 tensorflow
 gplearn
@@ -8,3 +9,4 @@ rulefit
 cvxopt
 
 pytest
+joblib
