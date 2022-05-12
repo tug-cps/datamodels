@@ -1,2 +1,2 @@
 from .StoreInterface import StoreInterface
-from .feature_extension import FeatureExpansion, PolynomialExpansion, SplineInterpolator, IdentityExpander
+from .feature_expansion import FeatureExpansion, PolynomialExpansion, SplineInterpolator, IdentityExpander
