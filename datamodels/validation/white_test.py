@@ -10,7 +10,7 @@ def white_test(x_test, residual):
     """
     # White - Test
     try:
-        [_,pvalue_lm,_,pvalue_f] = diag.het_white(residual, x_test.reshape(x_test.shape[0], x_test.shape[2]))
+        [_,pvalue_lm,_,pvalue_f] = diag.het_white(residual, x_test.reshape(x_test.shape[0], x_test.shape[1] * x_test.shape[2]))
         return {'pvalue_lm':pvalue_lm,'pvalue_f':pvalue_f}
     except AssertionError:
         print('White Test: Assertion error during calculation. Results are invalid.')
