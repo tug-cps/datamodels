@@ -1,6 +1,7 @@
 import copy
 import numpy as np
 from sklearn.metrics import r2_score
+import RegscorePy
 
 
 def prevent_zeros(value):
@@ -86,12 +87,17 @@ def nmae(y_true, y_pred):
     return np.abs(y_true - y_pred).mean() / prevent_zeros(np.nanmax(y_true) - np.nanmin(y_true))
 
 
+def aic(y_true, y_pred, num_predictors):
+    prevent_incorrect_dimensions(y_true, y_pred)
+    return RegscorePy.aic(y_true, y_pred, num_predictors)
+
+
 def all_metrics(y_true, y_pred):
     return {
         'R2': rsquared(y_true, y_pred),
         'CV-RMS': cvrmse(y_true, y_pred),
         'MAPE': mape(y_true, y_pred),
-        'R2_SKLEARN':rsquared_sklearn(y_true, y_pred),
+        'R2_SKLEARN': rsquared_sklearn(y_true, y_pred),
         'MAE': mae(y_true, y_pred),
         'NMAE': nmae(y_true, y_pred),
         'RMS': rmse(y_true, y_pred),

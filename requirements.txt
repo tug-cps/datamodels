@@ -10,3 +10,4 @@ cvxopt
 
 pytest
 joblib
+regscorepy
