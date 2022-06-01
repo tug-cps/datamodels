@@ -89,7 +89,7 @@ def nmae(y_true, y_pred):
 
 def aic(y_true, y_pred, num_predictors):
     prevent_incorrect_dimensions(y_true, y_pred)
-    return RegscorePy.aic(y_true, y_pred, num_predictors)
+    return RegscorePy.aic.aic(y_true, y_pred, num_predictors)
 
 
 def all_metrics(y_true, y_pred):
