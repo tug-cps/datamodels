@@ -1,6 +1,7 @@
 import os
 import joblib
 
+
 class StoreInterface:
     """
     Interface for storing objects as pickle file.
@@ -22,7 +23,6 @@ class StoreInterface:
             @param filename: filename
         """
         joblib.dump(self, os.path.join(path, filename))
-
 
     @classmethod
     def _get_type(cls, cls_type: str):

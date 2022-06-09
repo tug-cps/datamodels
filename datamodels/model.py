@@ -5,7 +5,7 @@ import sys
 from abc import abstractmethod
 
 from . processing import DataScaler, IdentityScaler
-from . processing.feature_extension import FeatureExpansion, IdentityExpander
+from . processing.feature_extension.expander_set import ExpanderSet
 
 class Model:
 
@@ -28,13 +28,13 @@ class Model:
         instance.load_model(path)
         return instance
 
-    def __init__(self, name='', x_scaler_class=IdentityScaler, y_scaler_class=IdentityScaler, **kwargs):
+    def __init__(self, name='', x_scaler_class=IdentityScaler, y_scaler_class=IdentityScaler, expanders=None, **kwargs):
         self.model_type = self.__class__.__name__
         self.name = name
         self.input_shape = None
         self.feature_names = None
 
-        self.expanders = FeatureExpansion.create_pipeline(kwargs.get('expanders', [IdentityExpander()]))
+        self.expanders = ExpanderSet(expanders)
         self.x_scaler = x_scaler_class()
         self.y_scaler = y_scaler_class()
 
@@ -53,7 +53,6 @@ class Model:
         self.y_scaler.fit(y_train)
 
         return self.x_scaler.transform(x_train), self.y_scaler.transform(y_train)
-
 
     def train(self, x_train, y_train):
         """
@@ -157,7 +156,7 @@ class Model:
 
         self.x_scaler.save(f'{path}/x_scaler.pickle')
         self.y_scaler.save(f'{path}/y_scaler.pickle')
-        FeatureExpansion.save_expanders(path, self.expanders)
+        self.expanders.save_pkl(path, 'expanders.pickle')
 
 
     @abstractmethod
@@ -170,13 +169,12 @@ class Model:
         
         self.x_scaler = DataScaler.load(f'{path}/x_scaler.pickle')
         self.y_scaler = DataScaler.load(f'{path}/y_scaler.pickle')
-        self.expanders = FeatureExpansion.load_expanders(path)
-
+        self.expanders = ExpanderSet.load_pkl(path, 'expanders.pickle')
+        self.expanders.set_feature_names(self.feature_names)
 
     def set_feature_names(self, feature_names):
         """ Set input feature names
             DO NOT OVERRIDE THIS METHOD
-
             to implement the set feature names function for different models override set_feature_names_model
         """
         self.feature_names = feature_names
@@ -184,11 +182,18 @@ class Model:
         self.set_feature_names_model(feature_names)
 
     def get_expanded_feature_names(self):
-        return self.expanders.get_feature_names_out(self.feature_names)
+        """
+        Get expanded feature names - get feature names after all expansion steps
+        """
+        return self.expanders.get_feature_names(self.feature_names)
 
     def set_feature_names_model(self, feature_names):
         """ Internal method - should be overridden by child classes """
         pass
 
     def get_feature_names_model(self):
+        """
+        Get feature names for model - override if necessary
+        """
         return self.get_expanded_feature_names()
+

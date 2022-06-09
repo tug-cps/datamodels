@@ -1,12 +1,9 @@
-import os
 import numpy as np
 from typing import List
 
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import SplineTransformer, PolynomialFeatures
 from sklearn.base import TransformerMixin
 from abc import abstractmethod
-from .StoreInterface import StoreInterface
+from .store_interface import StoreInterface
 
 
 class FeatureExpansion(TransformerMixin, StoreInterface):
@@ -89,47 +86,7 @@ class FeatureExpansion(TransformerMixin, StoreInterface):
         x_expanded = x_expanded.reshape((X.shape[0], X.shape[1], int(x_expanded.shape[1] / X.shape[1]))) if X.ndim == 3 else x_expanded
         return x_expanded
 
-    @classmethod
-    def load_expanders(cls, path):
-        """
-        Load list of expander pickle files from directory.
-        @param path: path to directory containing pickle files
-        @return: sklearn pipeline of expanders
-        """
-        expanders = []
-        for _, _, files in os.walk(path):
-            for filename in files:
-                if "expander" in filename:
-                    expanders.append(cls.load_pkl(path, filename))
-        return cls.create_pipeline(expanders)
-
-    @classmethod
-    def save_expanders(cls, path, expander_pipeline):
-        """
-        Load list of expander pickle files from directory.
-        @param path: path to directory
-        @param expander_pipeline: pipeline of expanders
-        """
-        for index, expander in enumerate(cls.get_list_expanders(expander_pipeline)):
-            expander.save_pkl(path,f'expander_{index}.pickle')
-
-    @staticmethod
-    def create_pipeline(list_expanders):
-        """
-        Create sklearn pipeline from list of expanders
-        @param list_expanders: list of expanders
-        @return: expander_pipeline: pipeline of expanders
-        """
-        return make_pipeline(*list_expanders, 'passthrough')
-
-    @staticmethod
-    def get_list_expanders(expander_pipeline):
-        """
-        Create sklearn pipeline from list of expanders
-        @param list_expanders: expander_pipeline: pipeline of expanders
-        @return: list of expanders
-        """
-        return [expander for (name, expander) in expander_pipeline.steps[:-1]]
+    ################################################## Internal methods - override these ###############################
 
     @abstractmethod
     def _get_feature_names(self, feature_names=None):
@@ -157,64 +114,4 @@ class FeatureExpansion(TransformerMixin, StoreInterface):
         @return: Transformed sample vector (n_samples, n_features_expanded)
         """
         raise NotImplementedError()
-
-
-class SplineInterpolator(FeatureExpansion):
-    """
-    Spline Interpolation
-    Expands features by spline bases -
-     see https://scikit-learn.org/dev/modules/generated/sklearn.preprocessing.SplineTransformer.html
-    Implements scikit-learn's TransformerMixin interface.
-    """
-    def __init__(self, **kwargs):
-        self.model = SplineTransformer(**kwargs)
-
-    def _get_feature_names(self, feature_names=None):
-        return self.model.get_feature_names_out(feature_names)
-
-    def _fit(self, x=None, y=None):
-        self.model = self.model.fit(x, y)
-
-    def _transform(self, x=None):
-        return self.model.transform(x)
-
-
-class PolynomialExpansion(FeatureExpansion):
-    """
-    Polynomial Feature Expansion
-    Expands features by polynomials of variable order -
-    https://scikit-learn.org/dev/modules/generated/sklearn.preprocessing.PolynomialFeatures.html
-    Implements scikit-learn's TransformerMixin interface.
-    """
-    def __init__(self, **kwargs):
-        self.model = PolynomialFeatures(**kwargs)
-
-    def _fit(self, x=None, y=None):
-        self.model.fit(x, y)
-
-    def _transform(self, x=None):
-        return self.model.transform(x)
-
-    def _get_feature_names(self, feature_names=None):
-        return self.model.get_feature_names_out(feature_names)
-
-
-class IdentityExpander(FeatureExpansion):
-    """
-    Identity Expander
-    This class does not expand the features.
-    Instantiate this class if you do not want to use any expansion.
-    """
-    def __init__(self):
-        pass
-
-    def _fit(self, x=None, y=None):
-        pass
-
-    def _transform(self, x=None):
-        return x
-
-    def _get_feature_names(self, feature_names=None):
-        return feature_names
-
 
