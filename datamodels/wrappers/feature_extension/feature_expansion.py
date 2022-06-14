@@ -1,5 +1,6 @@
 import numpy as np
 from typing import List
+import sys
 
 from sklearn.base import TransformerMixin
 from abc import abstractmethod
@@ -15,6 +16,19 @@ class FeatureExpansion(TransformerMixin, StoreInterface):
     features_to_expand: List[bool] = None
     selected_features: List[bool] = None
 
+    def init(self, **kwargs):
+        pass
+
+    @classmethod
+    def from_name(cls, name="FeatureExpansion", **kwargs):
+        """
+        Create object from class name
+        @param name: class name - must be name of subclass
+        Additional: optional args
+        @return: object of type name
+        """
+        return cls._get_type(name)(**kwargs)
+
     def set_feature_select(self, selected_features):
         """
         Set feature select for feature expander
@@ -28,6 +42,8 @@ class FeatureExpansion(TransformerMixin, StoreInterface):
         @param feature_names: Input feature names
         @return: Expanded feature names
         """
+        if feature_names is None:
+            return None
         feature_names = np.array(feature_names)
         feature_names_to_expand = feature_names[self.features_to_expand] if self.features_to_expand is not None else feature_names
         feature_names_basic = feature_names[np.bitwise_not(self.features_to_expand)] if self.features_to_expand is not None else []
@@ -85,6 +101,14 @@ class FeatureExpansion(TransformerMixin, StoreInterface):
         # Reshape to 3D if necessary
         x_expanded = x_expanded.reshape((X.shape[0], X.shape[1], int(x_expanded.shape[1] / X.shape[1]))) if X.ndim == 3 else x_expanded
         return x_expanded
+
+    def get_num_output_feats(self):
+        """
+        Get number of output features.
+        @return: number of output features
+        """
+        return np.sum(self.selected_features) if self.selected_features is not None else 0
+
 
     ################################################## Internal methods - override these ###############################
 

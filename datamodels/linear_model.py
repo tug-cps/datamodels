@@ -23,13 +23,13 @@ class LinearModel(Model):
             y_train = y_train.ravel()
         # Add feature names
         if self.feature_names is not None:
-            x_train = pd.DataFrame(data=x_train, columns=self.get_expanded_feature_names())
+            x_train = pd.DataFrame(data=x_train, columns=self.feature_names)
         self.model.fit(x_train, y_train)
 
     def predict_model(self, x):
         # Add feature names
         if self.feature_names is not None:
-            x = pd.DataFrame(data=x, columns=self.get_expanded_feature_names())
+            x = pd.DataFrame(data=x, columns=self.feature_names)
         result = self.model.predict(x)
         if result.ndim == 1:
             result = np.expand_dims(result, axis=-1)

@@ -16,6 +16,13 @@ class ExpanderSet(StoreInterface):
         self.expander_pipeline = make_pipeline(*expanders, 'passthrough')
         self.expander_pipeline.steps[0][1].feature_names_in_ = feature_names
 
+    @classmethod
+    def from_names(cls, expander_names: List[str], feature_names: List[str]=[], **kwargs):
+        """
+        Create expander set from names
+        """
+        return cls([FeatureExpansion.from_name(name, **kwargs) for name in expander_names], feature_names)
+
     #################################### Getters and Setters ###########################################################
 
     def get_list_expanders(self):
@@ -46,3 +53,6 @@ class ExpanderSet(StoreInterface):
 
     def transform(self, X):
         return self.expander_pipeline.transform(X)
+
+    def get_num_output_feats(self):
+        return self.get_list_expanders()[-1].get_num_output_feats()

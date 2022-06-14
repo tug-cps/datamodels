@@ -32,10 +32,10 @@ class StoreInterface:
         @param cls_type: class name
         @return: class type
         """
-        if cls_type in str(cls):
+        if cls_type == cls.__name__:
             return cls
         for subcl in cls._get_subclasses():
-            if cls_type in str(subcl):
+            if cls_type == subcl.__name__:
                 return subcl
         return None
 

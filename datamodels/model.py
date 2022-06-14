@@ -5,7 +5,6 @@ import sys
 from abc import abstractmethod
 
 from . processing import DataScaler, IdentityScaler
-from . processing.feature_extension.expander_set import ExpanderSet
 
 class Model:
 
@@ -28,13 +27,11 @@ class Model:
         instance.load_model(path)
         return instance
 
-    def __init__(self, name='', x_scaler_class=IdentityScaler, y_scaler_class=IdentityScaler, expanders=None, **kwargs):
+    def __init__(self, name='', x_scaler_class=IdentityScaler, y_scaler_class=IdentityScaler, **kwargs):
         self.model_type = self.__class__.__name__
         self.name = name
         self.input_shape = None
         self.feature_names = None
-
-        self.expanders = ExpanderSet(expanders)
         self.x_scaler = x_scaler_class()
         self.y_scaler = y_scaler_class()
 
@@ -85,12 +82,6 @@ class Model:
         self.input_shape = x_train.shape[1:]
         x_train = self.reshape_data(x_train)
         x_train, y_train = self.scale(x_train, y_train)
-
-        """
-            Feature Expansion: polynomial or spline expansion - use all expanders
-        """
-        x_train = self.expanders.fit_transform(x_train)
-
         self.train_model(x_train, y_train)
 
     @abstractmethod
@@ -121,10 +112,6 @@ class Model:
 
         x = self.reshape_data(x)
         x = self.x_scaler.transform(x)
-
-        ''' Expand features '''
-        x = self.expanders.transform(x)
-
         y = self.predict_model(x)
 
         if not y.shape[0] == x.shape[0]:
@@ -156,8 +143,6 @@ class Model:
 
         self.x_scaler.save(f'{path}/x_scaler.pickle')
         self.y_scaler.save(f'{path}/y_scaler.pickle')
-        self.expanders.save_pkl(path, 'expanders.pickle')
-
 
     @abstractmethod
     def load_model(self, path='models/EXAMPLE'):
@@ -169,8 +154,6 @@ class Model:
         
         self.x_scaler = DataScaler.load(f'{path}/x_scaler.pickle')
         self.y_scaler = DataScaler.load(f'{path}/y_scaler.pickle')
-        self.expanders = ExpanderSet.load_pkl(path, 'expanders.pickle')
-        self.expanders.set_feature_names(self.feature_names)
 
     def set_feature_names(self, feature_names):
         """ Set input feature names
@@ -181,12 +164,6 @@ class Model:
         # If necessary, additional steps in feature name setting
         self.set_feature_names_model(feature_names)
 
-    def get_expanded_feature_names(self):
-        """
-        Get expanded feature names - get feature names after all expansion steps
-        """
-        return self.expanders.get_feature_names(self.feature_names)
-
     def set_feature_names_model(self, feature_names):
         """ Internal method - should be overridden by child classes """
         pass
@@ -195,5 +172,20 @@ class Model:
         """
         Get feature names for model - override if necessary
         """
-        return self.get_expanded_feature_names()
+        return self.feature_names
 
+    def get_estimator(self):
+        """
+        Get sklearn estimator from model
+        @return estimator
+        """
+        return getattr(self, "model", None)
+
+    @classmethod
+    def from_name(cls, model_type="LinearRegression", **kwargs):
+        return cls.cls_from_name(model_type)(**kwargs)
+
+    @classmethod
+    def cls_from_name(cls, model_type="LinearRegression"):
+        parent_name = '.'.join(__name__.split('.')[:-1])
+        return getattr(sys.modules[parent_name], model_type, None)

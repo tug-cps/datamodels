@@ -8,4 +8,3 @@ from . datascaler import (
 
 from . import shape
 
-from . import feature_extension

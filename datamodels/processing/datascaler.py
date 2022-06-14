@@ -54,6 +54,15 @@ class DataScaler:
         if os.path.isfile(path):
             print(f'{path} already exists, overwriting ..')
 
+    @classmethod
+    def from_name(cls, scaler_type="IdentityScaler", **kwargs):
+        return cls.cls_from_name(scaler_type)(**kwargs)
+
+    @classmethod
+    def cls_from_name(cls, scaler_type="IdentityScaler"):
+        parent_name = '.'.join(__name__.split('.')[:-1])
+        return getattr(sys.modules[parent_name], scaler_type, None)
+
 
 class IdentityScaler(DataScaler):
 
