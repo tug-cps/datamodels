@@ -14,7 +14,6 @@ class FeatureExpansion(TransformerMixin, StoreInterface):
     Implements scikit-learn's TransformerMixin interface, allows storing and loading from pickle
     """
     features_to_expand: List[bool] = None
-    selected_features: List[bool] = None
 
     def init(self, **kwargs):
         pass
@@ -29,12 +28,15 @@ class FeatureExpansion(TransformerMixin, StoreInterface):
         """
         return cls._get_type(name)(**kwargs)
 
-    def set_feature_select(self, selected_features):
+    @classmethod
+    def from_names(cls, names: List[str], **kwargs):
         """
-        Set feature select for feature expander
-        @param selected_features: Vector of booleans to select whether to use featuress
+        Create objects from class names
+        @param names: class names - must be names of subclasses
+        Additional: optional args
+        @return: list of objects of type names
         """
-        self.selected_features = selected_features
+        return [cls.from_name(name, **kwargs) for name in names]
 
     def get_feature_names_out(self, feature_names=None):
         """
@@ -52,7 +54,6 @@ class FeatureExpansion(TransformerMixin, StoreInterface):
             feature_names_tr = np.hstack((feature_names_basic, np.array(self._get_feature_names(feature_names_to_expand))))
         else:
             feature_names_tr = feature_names_basic
-        feature_names_tr = feature_names_tr[self.selected_features] if self.selected_features is not None else feature_names_tr
         return list(feature_names_tr)
 
     def fit_transform(self, X, y=None, **fit_params):
@@ -96,19 +97,9 @@ class FeatureExpansion(TransformerMixin, StoreInterface):
                 x_expanded = x_basic
         else:
             x_expanded = self._transform(x_reshaped)
-        # Select features if necessary
-        x_expanded = x_expanded[:, self.selected_features] if self.selected_features is not None else x_expanded
         # Reshape to 3D if necessary
         x_expanded = x_expanded.reshape((X.shape[0], X.shape[1], int(x_expanded.shape[1] / X.shape[1]))) if X.ndim == 3 else x_expanded
         return x_expanded
-
-    def get_num_output_feats(self):
-        """
-        Get number of output features.
-        @return: number of output features
-        """
-        return np.sum(self.selected_features) if self.selected_features is not None else 0
-
 
     ################################################## Internal methods - override these ###############################
 

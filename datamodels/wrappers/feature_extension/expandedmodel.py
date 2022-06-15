@@ -1,4 +1,4 @@
-from . import StoreInterface, ExpanderSet
+from . import StoreInterface, TransformerSet
 from ... import Model
 
 
@@ -7,12 +7,13 @@ class ExpandedModel(StoreInterface):
     Expansion Model - contains set of feature expanders
     """
     model: Model
-    expanders: ExpanderSet
+    transformers: TransformerSet
     feature_names = None
+    num_predictors = 0
 
-    def __init__(self, model: Model, expanders: ExpanderSet, feature_names=None):
+    def __init__(self, model: Model, transformers: TransformerSet, feature_names=None):
         self.model = model
-        self.expanders = expanders
+        self.transformers = transformers
         self.feature_names = feature_names
 
     def train(self, X, y, **fit_params):
@@ -24,7 +25,8 @@ class ExpandedModel(StoreInterface):
         self.model.input_shape = X.shape[1:]
         X = self.model.reshape_data(X)
         X, y = self.model.scale(X, y)
-        X = self.expanders.fit_transform(X)
+        X = self.transformers.fit_transform(X, y)
+        self.num_predictors = X.shape[-1]
         self.model.train_model(X, y)
 
     def reshape_data(self, X):
@@ -52,7 +54,7 @@ class ExpandedModel(StoreInterface):
                                f'but is {X.shape}')
         X = self.model.reshape_data(X)
         X = self.model.x_scaler.transform(X)
-        X = self.expanders.transform(X)
+        X = self.transformers.transform(X)
         y = self.model.predict_model(X)
         if not y.shape[0] == X.shape[0]:
             raise AssertionError(f'samples in prediction do not match samples in input\n'
@@ -63,21 +65,35 @@ class ExpandedModel(StoreInterface):
                                  f'but are {y.shape}.')
         return self.model.y_scaler.inverse_transform(y)
 
-    def get_expanded_feature_names(self):
+    def fit_transformers(self, X, y, **fit_params):
+        if not X.ndim == 3:
+            raise RuntimeError(f'x must be an array of shape (samples, lookback_horizon + 1, input_features)\n'
+                               f'but is {X.shape}')
+        X = self.model.reshape_data(X)
+        X, y = self.model.scale(X, y)
+        self.transformers.fit(X, y)
+
+    def transform_features(self, X):
+        return self.transformers.transform(X)
+
+    def get_transformed_feature_names(self):
         """
         Get expanded feature names - get feature names after all expansion steps
         """
-        return self.expanders.get_feature_names(self.feature_names)
+        return self.transformers.get_feature_names_out(self.feature_names)
 
     def set_feature_names(self, feature_names=None):
         """
         Set feature names for model
         """
         self.feature_names = feature_names
-        self.model.set_feature_names(self.get_expanded_feature_names())
+        self.model.set_feature_names(self.get_transformed_feature_names())
 
     def get_estimator(self):
         return self.model.get_estimator()
+
+    def get_num_predictors(self):
+        return self.num_predictors
 
     @property
     def name(self):
