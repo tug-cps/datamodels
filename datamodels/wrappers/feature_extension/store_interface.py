@@ -1,5 +1,6 @@
 import os
 import joblib
+import pickle
 
 
 class StoreInterface:
@@ -14,7 +15,8 @@ class StoreInterface:
             @param filename: filename
             @return: object from file
         """
-        return joblib.load(os.path.join(path, filename))
+        with open(os.path.join(path, filename), "rb") as f:
+            return pickle.load(f)
 
     def save_pkl(self, path, filename):
         """
@@ -22,7 +24,8 @@ class StoreInterface:
             @param path: directory containing file
             @param filename: filename
         """
-        joblib.dump(self, os.path.join(path, filename))
+        with open(os.path.join(path, filename), "wb") as f:
+            pickle.dump(self, f)
 
     @classmethod
     def _get_type(cls, cls_type: str):
