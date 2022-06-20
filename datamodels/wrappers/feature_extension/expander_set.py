@@ -43,9 +43,14 @@ class TransformerSet(TransformerMixin, StoreInterface):
     def type_transf_full(self):
         return "_".join(transformer.__class__.__name__ for _, transformer in self.transformer_pipeline.steps[:-1])
 
-    def type_last_transf(self):
-        return self.transformer_pipeline.steps[-2][1].__class__.__name__ if len(self.transformer_pipeline.steps) > 1 \
-            else 'passthrough'
+    def type_last_transf(self, parent_type=None):
+        if parent_type is None:
+            if len(self.transformer_pipeline.steps) > 1:
+                return self.transformer_pipeline.steps[-2][1].__class__.__name__
+            else:
+                return 'passthrough'
+        else:
+            return self.get_transformers_of_type(parent_type)[-1].__class__.__name__
 
     ########################################### Pipeline methods #######################################################
 
