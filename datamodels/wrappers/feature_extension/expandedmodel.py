@@ -1,5 +1,6 @@
 from . import StoreInterface, TransformerSet
 from ... import Model
+from sklearn.pipeline import make_pipeline
 
 
 class ExpandedModel(StoreInterface):
@@ -23,16 +24,27 @@ class ExpandedModel(StoreInterface):
         @param y: tensor of shape (n_samples, input_features)
         """
         self.model.input_shape = X.shape[1:]
-        X = self.model.reshape_data(X)
-        X, y = self.model.scale(X, y)
-        X = self.transformers.fit_transform(X, y)
         self.num_predictors = X.shape[-1]
+        X, y = self.preprocess(X, y)
+        X = self.transformers.fit_transform(X, y)
         self.model.train_model(X, y)
 
     def reshape_data(self, X):
         return self.model.reshape_data(X)
 
     def scale(self, X, y):
+        return self.model.scale(X, y)
+
+    def preprocess(self, X, y=None):
+        """
+        Call preprocessing functions - used for training
+        @param X: tensor of shape (n_samples, lookback_horizon + 1, input_features)
+        @param y: tensor of shape (n_samples, input_features)
+        """
+        if not X.ndim == 3:
+            raise RuntimeError(f'x must be an array of shape (samples, lookback_horizon + 1, input_features)\n'
+                               f'but is {X.shape}')
+        X = self.model.reshape_data(X)
         return self.model.scale(X, y)
 
     def fit(self, X, y, **fit_params):
@@ -66,14 +78,20 @@ class ExpandedModel(StoreInterface):
         return self.model.y_scaler.inverse_transform(y)
 
     def fit_transformers(self, X, y, **fit_params):
-        if not X.ndim == 3:
-            raise RuntimeError(f'x must be an array of shape (samples, lookback_horizon + 1, input_features)\n'
-                               f'but is {X.shape}')
-        X = self.model.reshape_data(X)
-        X, y = self.model.scale(X, y)
+        """
+        Fit transformers.
+        @param X: tensor of shape (n_samples, lookback_horizon + 1, input_features)
+        @param y: tensor of shape (n_samples, input_features)
+        """
+        X, y = self.preprocess(X, y)
         self.transformers.fit(X, y)
 
     def transform_features(self, X):
+        """
+        Transform features - requires fitted transformers.
+        @param X: tensor of shape (n_samples, lookback_horizon + 1, input_features)
+        @return: transformed features
+        """
         return self.transformers.transform(X)
 
     def get_transformed_feature_names(self):
@@ -102,5 +120,14 @@ class ExpandedModel(StoreInterface):
     @name.setter
     def name(self, name=""):
         self.model.name = name
+
+    def get_full_pipeline(self):
+        """
+        Create pipeline of transformers and estimators
+        @return: pipeline
+        """
+        transformers = self.transformers.get_list_transfomers()
+        estimator = self.model.get_estimator()
+        return make_pipeline(*transformers, estimator)
 
 
