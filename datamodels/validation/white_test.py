@@ -1,4 +1,5 @@
 from statsmodels.stats import diagnostic as diag
+import numpy as np
 
 
 def white_test(x_test, residual):
@@ -10,7 +11,7 @@ def white_test(x_test, residual):
     """
     # White - Test
     try:
-        [_,pvalue_lm,_,pvalue_f] = diag.het_white(residual, x_test.reshape(x_test.shape[0], -1))
+        [_,pvalue_lm,_,pvalue_f] = diag.het_white(residual, np.reshape(x_test,(x_test.shape[0], -1)))
         return {'pvalue_lm':pvalue_lm,'pvalue_f':pvalue_f}
     except AssertionError:
         print('White Test: Assertion error during calculation. Results are invalid.')
