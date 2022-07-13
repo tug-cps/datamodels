@@ -13,12 +13,13 @@ class RuleFitRegression(Model):
         parameters = {} if parameters is None else parameters
         self.model = RuleFit(**parameters)
 
-    def reshape_data(self, x):
+    def reshape(self, x):
         if x.ndim == 3:
             x = x.reshape(x.shape[0], -1)
         return x
 
     def train_model(self, x_train, y_train, **kwargs):
+        x_train = self.reshape(x_train)
         if y_train.ndim > 1:
             if y_train.shape[1] > 1:
                 raise ValueError('The RuleFit currently only supports models with a single output feature.')
@@ -26,6 +27,7 @@ class RuleFitRegression(Model):
         self.model.fit(x_train, y_train, self.feature_names)
 
     def predict_model(self, x):
+        x = self.reshape(x)
         result = self.model.predict(x)
         if result.ndim == 1:
             result = np.expand_dims(result, axis=-1)
