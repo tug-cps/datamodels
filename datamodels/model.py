@@ -162,7 +162,7 @@ class Model:
         else:
             os.mkdir(path)
         with open(f"{path}/params.pickle", "wb") as file:
-            pickle.dump([self.model_type, self.name, self.x_shape, self.y_shape], file)
+            pickle.dump([self.model_type, self.name, self.x_shape, self.y_shape, self.feature_names], file)
 
         self.x_scaler.save(f"{path}/x_scaler.pickle")
         self.y_scaler.save(f"{path}/y_scaler.pickle")
@@ -174,6 +174,52 @@ class Model:
             self.name = params[1]
             self.x_shape = params[2]
             self.y_shape = params[3]
+            self.feature_names = params[4]
 
         self.x_scaler = DataScaler.load(f"{path}/x_scaler.pickle")
         self.y_scaler = DataScaler.load(f"{path}/y_scaler.pickle")
+
+    def set_feature_names(self, feature_names):
+        """ Set input feature names
+            DO NOT OVERRIDE THIS METHOD
+            to implement the set feature names function for different models override set_feature_names_model
+        """
+        self.feature_names = feature_names
+        # If necessary, additional steps in feature name setting
+        self.set_feature_names_model(feature_names)
+
+    def set_feature_names_model(self, feature_names):
+        """ Internal method - should be overridden by child classes """
+        pass
+
+    def get_feature_names_model(self):
+        """
+        Get feature names for model - override if necessary
+        """
+        return self.feature_names
+
+    def get_estimator(self):
+        """
+        Get sklearn estimator from model
+        @return estimator if exists, else None.
+        """
+        return getattr(self, "model", None)
+
+    @classmethod
+    def from_name(cls, model_type="LinearRegression", **kwargs):
+        """
+        Create object from name.
+        @param model_type: model type (must be in same package)
+        @return: object
+        """
+        return cls.cls_from_name(model_type)(**kwargs)
+
+    @classmethod
+    def cls_from_name(cls, model_type="LinearRegression"):
+        """
+        Get class type from name.
+        @param model_type: Model type (must be in same package)
+        @return: type
+        """
+        parent_name = '.'.join(__name__.split('.')[:-1])
+        return getattr(sys.modules[parent_name], model_type, None)
