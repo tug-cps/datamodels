@@ -37,6 +37,7 @@ class Model:
 
         self.x_shape = None
         self.y_shape = None
+        self.feature_names = None
 
         self.x_scaler = IdentityScaler()
         self.y_scaler = IdentityScaler()

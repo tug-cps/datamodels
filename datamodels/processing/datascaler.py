@@ -57,7 +57,6 @@ class DataScaler:
         if os.path.isfile(path):
             print(f"{path} already exists, overwriting ..")
 
-
 class IdentityScaler(DataScaler):
     def was_fitted(self) -> bool:
         return True
