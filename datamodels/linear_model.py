@@ -13,7 +13,7 @@ class LinearModel(Model):
         self.model = DummyRegressor()
         self.feature_names = kwargs.pop('feature_names',None)
 
-    def reshape_data(self, x):
+    def reshape(self, x):
         if x.ndim == 3:
             x = x.reshape(x.shape[0], -1)
         return x
@@ -22,12 +22,14 @@ class LinearModel(Model):
         if y_train.ndim == 1:
             y_train = y_train.ravel()
         # Add feature names
+        x_train = self.reshape(x_train)
         if self.feature_names is not None:
             x_train = pd.DataFrame(data=x_train, columns=self.feature_names)
         self.model.fit(x_train, y_train)
 
     def predict_model(self, x):
         # Add feature names
+        x = self.reshape(x)
         if self.feature_names is not None:
             x = pd.DataFrame(data=x, columns=self.feature_names)
         result = self.model.predict(x)

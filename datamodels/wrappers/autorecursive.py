@@ -52,7 +52,8 @@ class AutoRecursive:
 
         if inputs.ndim != 3:
             raise ValueError(
-                f'inputs must have three dimensons: (n > {num_predictions}, {time_steps} or 1, input features), but was {inputs.shape}.'
+                f'inputs must have three dimensons: (n > {num_predictions}, {time_steps} (time steps) or 1,', 
+                f'input features), but was {inputs.shape}.'
             )
 
         num_inputs = inputs.shape[0]
@@ -61,7 +62,7 @@ class AutoRecursive:
         if time_steps != time_steps_inputs and time_steps_inputs != 1:
             raise ValueError(
                 'time axis of inputs has to either match the time axis of the y0s'
-                f'or 1. i.e. (n > {num_predictions}, {time_steps}, input features)'
+                f'or 1. i.e. (n > {num_predictions}, {time_steps} (time steps), input features)'
                 f'or (n > {num_predictions}, 1, input features)'
                 f'but was {input.shape}'
             )
@@ -79,7 +80,7 @@ class AutoRecursive:
             if time_steps_inputs == 1:
                 yc = np.reshape(yc, (1, time_steps * num_features))
             x = np.concatenate((yc, inputs[i]), axis=-1)[np.newaxis, ...]
-            yn = self.model.predict(x)
+            yn = self.model.predict(x)[:, -1, :]
             y = np.concatenate((y, yn))
 
         return y[y0s.shape[0]:]

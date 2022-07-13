@@ -7,15 +7,13 @@ from . import NeuralNetwork
 def build_model(input_shape: tuple, target_shape: tuple) -> keras.Model:
     return keras.Sequential(
         [
-            layers.Input(input_shape),
-            layers.Conv1D(filters=32, kernel_size=3, activation="relu"),
-            layers.Dense(units=32, activation="relu"),
-            layers.Flatten(),
-            layers.Dense(target_shape[0]),
+            layers.Input(shape=input_shape),
+            layers.GRU(units=32),
+            layers.Dense(units=target_shape[0])
         ]
     )
 
 
-class ConvolutionNetwork(NeuralNetwork):
+class GRU(NeuralNetwork):
     def __init__(self, build_function=build_model, **kwargs):
         super().__init__(build_function=build_function, **kwargs)

@@ -6,12 +6,21 @@ from typing import Tuple
 
 def prevent_zeros(value):
     """
-    this ensures that the value does not contain zeros.
 
+    this ensures that the value does not contain zeros.
     it can be used to prevent division by zero.
 
-    :param value: scalar or array-like
-    :return: value without zeros
+    Parameters
+    ----------
+
+    x : scalar or array_like
+        the value where zeros should be replaced.
+
+    Returns
+    -------
+    scalar or array_like
+        the input with the zeroes replaced.
+
     """
     if np.isscalar(value):
         return value if value != 0 else 1.
@@ -23,7 +32,7 @@ def prevent_zeros(value):
 
 def split(data: np.ndarray, frac: float) -> Tuple[np.ndarray, np.ndarray]:
     if not 0 <= frac <= 1:
-        raise ValueError('Invalid fraction, must be between 0 and 1')
+        raise ValueError('invalid fraction, must be between 0 and 1')
 
     index = int(frac * data.shape[0])
 
@@ -38,40 +47,44 @@ def split(data: np.ndarray, frac: float) -> Tuple[np.ndarray, np.ndarray]:
         return first, second
 
 
-def split_into_target_segments(
+def get_windows(
+        lookback: int,
         features: np.ndarray,
-        targets: np.ndarray,
-        lookback_horizon: int,
-        prediction_horizon: int,
-) -> Tuple[np.ndarray, np.ndarray]:
+        lookahead: int,
+        targets: np.ndarray=None,
+        targets_as_sequence: bool=False
+):
     """
-    :param features: an array containing the features, this can be previous system states (i.e. targets) and/or
-                     other inputs.
+    this generates feature and target windows of shapes that can be feed to a model.
 
-    :param targets: an array containing one ore more target values. OPTIONAL: if you don't pass targets,
-                    the function will return an empty list for the labels.
+    Parameters
+    ----------  
+    lookback : int
+        feature window time axis; if 0, feature window is [(f_0 ... f_n)].
+    features : array_like
+        the array containing the input features.
+    lookahead : int
+        target window time axis; offset between t_0 and the end of target window.
+        even if no targets are passed this is used to get the correct feature length.
+        set to 0, if you don't need this check.  
+    targets : array_like, optional
+        the array containing the target features.
+    targets_as_sequence: bool, optional
+        whether target windows are a sequence between t_0 and the lookahead or just the value at t_0 + lookahead.
 
-    :param lookback_horizon: length of the lookback. resulting feature segments will be of of size lookback + 1
-                             for 0, this is: (f_t_0 ... f_t_n)
-                             for 1, it is: ((f_t_0 ... f_t_n), (f_t-1_0 ... f_t-1_n))
+    Returns
+    -------
+    Tuple of np.ndarrays or single np.ndarray
+        the feature windows, shape is (batch, lookback + 1, input features)
+        [optional] the target features, shape is (batch, lookback + 1 or 1, target features)
 
-    :param prediction_horizon: prediction happens at a single point in time, the prediction horizon is
-                               the offset between the end of the feature segment and the target, i.e.
-                               feature segments always contain samples from lookback horizon to t=0,
-                               if prediction_horizon is set to 0 target and feature segment both contain the value
-                               associated with the current time step.
-
-    :return: two numpy arrays:
-     a) the feature_batches: an array of arrays of size lookback_horizon x (number of features + label value)
-     b) the labels: an array of single number labels
     """
-
     if features.ndim != 2:
-        raise RuntimeError(f'features must have shape (seq_length, num_features), '
+        raise RuntimeError(f'features must have shape (samples, input_features), '
                            f'but has {features.shape}')
 
     if targets is not None and targets.ndim != 2:
-        raise RuntimeError(f'targets must have shape (seq_length, num_target_features), '
+        raise RuntimeError(f'targets must have shape (samples, target_features), '
                            f'but has {targets.shape}')
 
     if targets is not None and features.shape[0] != targets.shape[0]:
@@ -79,21 +92,28 @@ def split_into_target_segments(
                            f'features has: {features.shape}, targets has: {targets.shape}')
 
     samples = features.shape[0]
-    start_index = lookback_horizon
-    end_index = samples - prediction_horizon
+    start_index = lookback
+    end_index = samples - lookahead
 
     if not start_index < end_index:
-        raise RuntimeError(f'there are not enough samples in features and targets for these horizons.\n'
-                           f'samples: {samples}\n'
-                           f'lookback_horizon: {lookback_horizon}, predicion_horizon {prediction_horizon}\n'
-                           f'you need at least {lookback_horizon + prediction_horizon + 1} sample(s).')
+        raise RuntimeError(f'there are not enough samples in features and targets.\n'
+                           f'samples: {samples}, lookback: {lookback}, lookahead {lookahead}\n'
+                           f'so you need at least {lookback + lookahead + 1} sample(s).')
 
     feature_list = []
     target_list = []
 
     for i in range(start_index, end_index):
-        feature_list.append(features[i - lookback_horizon: i + 1])
+        feature_list.append(features[i - lookback: i + 1])
         if targets is not None:
-            target_list.append(targets[i + prediction_horizon])
+            target_list.append(targets[i: i + lookahead + 1])
 
-    return np.array(feature_list), np.array(target_list)
+    x = np.array(feature_list)
+    if targets is None: 
+        return x
+    
+    y = np.array(target_list)
+    if not targets_as_sequence:
+        y = y[:, -1:, :]
+
+    return x, y
