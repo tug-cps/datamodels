@@ -6,18 +6,17 @@ import numpy as np
 
 from abc import abstractmethod
 
-from . shape import prevent_zeros
+from .shape import prevent_zeros
 
 
 class DataScaler:
-
     @staticmethod
-    def load(path='scalers.pickle'):
-        with open(path, 'rb') as file:
+    def load(path="scalers.pickle"):
+        with open(path, "rb") as file:
             attrs = pickle.load(file)
             scaler_type = attrs[0]
-            
-            parent_name = '.'.join(__name__.split('.')[:-1])
+
+            parent_name = ".".join(__name__.split(".")[:-1])
             instance = getattr(sys.modules[parent_name], scaler_type)()
             instance.set_attrs(attrs[1:])
 
@@ -25,7 +24,11 @@ class DataScaler:
 
     @abstractmethod
     def set_attrs(self, attrs):
-            raise NotImplementedError()  
+        raise NotImplementedError()
+
+    @abstractmethod
+    def was_fitted(self) -> bool:
+        raise NotImplementedError()
 
     @abstractmethod
     def fit(self, distribution):
@@ -50,9 +53,9 @@ class DataScaler:
         raise NotImplementedError()
 
     @abstractmethod
-    def save(self, path='scaler.pickle'):
+    def save(self, path="scaler.pickle"):
         if os.path.isfile(path):
-            print(f'{path} already exists, overwriting ..')
+            print(f"{path} already exists, overwriting ..")
 
     @classmethod
     def from_name(cls, scaler_type="IdentityScaler", **kwargs):
@@ -65,6 +68,8 @@ class DataScaler:
 
 
 class IdentityScaler(DataScaler):
+    def was_fitted(self) -> bool:
+        return True
 
     def fit(self, distribution):
         return self
@@ -75,19 +80,21 @@ class IdentityScaler(DataScaler):
     def inverse_transform(self, data):
         return data
 
-    def save(self, path='scaler.pickle'):
+    def save(self, path="scaler.pickle"):
         super(IdentityScaler, self).save(path)
-        with open(path, 'wb') as file:
-            pickle.dump([
-                self.__class__.__name__, 
-            ], file)
-    
+        with open(path, "wb") as file:
+            pickle.dump(
+                [
+                    self.__class__.__name__,
+                ],
+                file,
+            )
+
     def set_attrs(self, attrs):
         pass
 
 
 class Normalizer(DataScaler):
-
     def __init__(self):
         self.min = None
         self.max = None
@@ -98,6 +105,9 @@ class Normalizer(DataScaler):
         self.max = np.nanmax(distribution, axis=0)
         self.scale = prevent_zeros(self.max - self.min)
         return self
+
+    def was_fitted(self) -> bool:
+        return self.min is not None and self.max is not None and self.scale is not None
 
     def transform(self, data):
         """
@@ -111,7 +121,7 @@ class Normalizer(DataScaler):
         :param data: array-like, pd.DataFrame, numpy-array
         :return: data, normalized between 0 and 1
         """
-        if self.min is None or self.max is None or self.scale is None:
+        if not self.was_fitted():
             raise ValueError(
                 "parameters not set, cannot transform data, you must call .fit(distribution) first."
             )
@@ -119,21 +129,16 @@ class Normalizer(DataScaler):
         return (data - self.min) / self.scale
 
     def inverse_transform(self, data):
-        if self.min is None or self.max is None or self.scale is None:
+        if not self.was_fitted():
             raise ValueError(
                 "parameters not set, cannot transform data, you must call .fit(distribution) first."
             )
         return data * self.scale + self.min
-    
-    def save(self, path='scaler.pickle'):
+
+    def save(self, path="scaler.pickle"):
         super(Normalizer, self).save(path)
-        with open(path, 'wb') as file:
-            pickle.dump([
-                self.__class__.__name__,
-                self.min,
-                self.max,
-                self.scale
-            ], file)
+        with open(path, "wb") as file:
+            pickle.dump([self.__class__.__name__, self.min, self.max, self.scale], file)
 
     def set_attrs(self, attrs):
         self.min = attrs[0]
@@ -142,10 +147,12 @@ class Normalizer(DataScaler):
 
 
 class Standardizer(DataScaler):
-
     def __init__(self):
         self.mean = None
         self.std = None
+
+    def was_fitted(self) -> bool:
+        return self.mean is not None and self.std is not None
 
     def fit(self, distribution):
         self.mean = np.nanmean(distribution, axis=0)
@@ -161,7 +168,7 @@ class Standardizer(DataScaler):
         :param data: array-like, pd.DataFrame, numpy-array
         :return: data, scaled such that mean=0 and std=1
         """
-        if self.mean is None or self.std is None:
+        if not self.was_fitted():
             raise ValueError(
                 "parameters not set, cannot transform data, you must call .fit(distribution) first."
             )
@@ -169,20 +176,23 @@ class Standardizer(DataScaler):
         return (data - self.mean) / self.std
 
     def inverse_transform(self, data):
-        if self.mean is None or self.std is None:
+        if not self.was_fitted():
             raise ValueError(
                 "parameters not set, cannot transform data, you must call .fit(distribution) first."
             )
         return data * self.std + self.mean
 
-    def save(self, path='scaler.pickle'):
+    def save(self, path="scaler.pickle"):
         super(Standardizer, self).save(path)
-        with open(path, 'wb') as file:
-            pickle.dump([
-                self.__class__.__name__,
-                self.mean,
-                self.std,
-            ], file)
+        with open(path, "wb") as file:
+            pickle.dump(
+                [
+                    self.__class__.__name__,
+                    self.mean,
+                    self.std,
+                ],
+                file,
+            )
 
     def set_attrs(self, attrs):
         self.mean = attrs[0]
@@ -190,15 +200,17 @@ class Standardizer(DataScaler):
 
 
 class RobustStandardizer(DataScaler):
-
     def __init__(self):
         self.median = None
         self.scale = None
 
+    def was_fitted(self) -> bool:
+        return self.median is not None and self.scale is not None
+
     def fit(self, distribution):
         self.median = np.nanmedian(distribution, axis=0)
-        q25 = np.nanquantile(distribution, .25, axis=0)
-        q75 = np.nanquantile(distribution, .75, axis=0)
+        q25 = np.nanquantile(distribution, 0.25, axis=0)
+        q75 = np.nanquantile(distribution, 0.75, axis=0)
         self.scale = prevent_zeros(q75 - q25)
         return self
 
@@ -210,27 +222,30 @@ class RobustStandardizer(DataScaler):
         :param data: array-like, pd.DataFrame, numpy-array
         :return: standardized data, scaled by range between 1st and 3rd quantile
         """
-        if self.median is None or self.scale is None:
+        if not self.was_fitted():
             raise ValueError(
                 "parameters not set, cannot transform data, you must call .fit(distribution) first."
             )
         return (data - self.median) / self.scale
 
     def inverse_transform(self, data):
-        if self.median is None or self.scale is None:
+        if not self.was_fitted():
             raise ValueError(
                 "parameters not set, cannot transform data, you must call .fit(distribution) first."
             )
         return data * self.scale + self.median
 
-    def save(self, path='scaler.pickle'):
+    def save(self, path="scaler.pickle"):
         super(RobustStandardizer, self).save(path)
-        with open(path, 'wb') as file:
-            pickle.dump([
-                self.__class__.__name__,
-                self.median,
-                self.scale,
-            ], file)
+        with open(path, "wb") as file:
+            pickle.dump(
+                [
+                    self.__class__.__name__,
+                    self.median,
+                    self.scale,
+                ],
+                file,
+            )
 
     def set_attrs(self, attrs):
         self.median = attrs[0]

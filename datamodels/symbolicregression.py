@@ -13,16 +13,16 @@ class SymbolicRegression(Model):
         from gplearn.genetic import SymbolicRegressor
         self.model = SymbolicRegressor(**parameters)
 
-    def reshape_data(self, x):
+    def reshape(self, x):
         if x.ndim == 3:
             x = x.reshape(x.shape[0], -1)
         return x
 
     def train_model(self, x_train, y_train, **kwargs):
-        self.model.fit(x_train, y_train)
+        self.model.fit(self.reshape(x_train), y_train)
 
     def predict_model(self, x):
-        y = self.model.predict(x)
+        y = self.model.predict(self.reshape(x))
         return y.reshape(y.shape[0],1)
 
     def save(self, path="data/models/DUMMY.txt"):
