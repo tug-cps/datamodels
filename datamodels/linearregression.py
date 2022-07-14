@@ -1,9 +1,8 @@
-import pickle
-
-from . import Model
+from . import LinearModel
 
 
-class LinearRegression(Model):
+class LinearRegression(LinearModel):
+
     def __init__(self, parameters=None, **kwargs):
         super().__init__(**kwargs)
 
@@ -13,30 +12,3 @@ class LinearRegression(Model):
         from sklearn.linear_model import LinearRegression
 
         self.model = LinearRegression(**parameters)
-
-    def reshape(self, arr):
-        if arr.shape[1] == arr.shape[1] == 1:
-            arr = arr.ravel()
-        else:
-            arr = arr.reshape(arr.shape[0], arr.shape[1] * arr.shape[2])
-        return arr
-
-    def train_model(self, x, y, **kwargs):
-        x = self.reshape(x)
-        y = self.reshape(y)
-
-        self.model.fit(x, y)
-
-    def predict_model(self, x):
-        x = self.reshape(x)
-        return self.model.predict(x)
-
-    def save(self, path="data/models/LinearRegression"):
-        super(LinearRegression, self).save(path)
-        with open(f"{path}/model.pickle", "wb") as file:
-            pickle.dump(self.model, file)
-
-    def load_model(self, path="data/models/LinearRegression"):
-        super(LinearRegression, self).load_model(path)
-        with open(f"{path}/model.pickle", "rb") as file:
-            self.model = pickle.load(file)

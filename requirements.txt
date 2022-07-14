@@ -3,4 +3,8 @@ numpy
 scikit-learn
 tensorflow
 
+rulefit
+gplearn
+statsmodels
+
 pytest

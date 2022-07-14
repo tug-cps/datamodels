@@ -4,7 +4,12 @@ import pytest
 
 from datamodels import (
     Model, 
-    LinearRegression, 
+    LinearRegression,
+    RidgeRegression,
+    PLSRegression,
+    WeightedLS,
+    SymbolicRegression,
+    RuleFitRegression,
     RandomForestRegression,
     SupportVectorRegression,
     XGBoost,
@@ -19,7 +24,9 @@ from datamodels import (
 
 
 @pytest.mark.parametrize('model_class', [
-    LinearRegression, 
+    LinearRegression,
+    RidgeRegression,
+    PLSRegression,
     RandomForestRegression,
     NeuralNetwork,
     VanillaLSTM,
@@ -62,7 +69,12 @@ def test_predict_sequence_save_and_load(model_class, tmpdir):
     assert y_pred.shape == (5, lookahead + 1, number_target_features)
 
 @pytest.mark.parametrize('model_class', [
-    LinearRegression, 
+    LinearRegression,
+    RidgeRegression,
+    PLSRegression,
+    WeightedLS,
+    SymbolicRegression,
+    RuleFitRegression,
     RandomForestRegression,
     SupportVectorRegression,
     XGBoost,

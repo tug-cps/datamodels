@@ -74,6 +74,36 @@ def adjusted_rsquared(y_true, y_pred, variables):
     p = variables
     return 1 - (1 - rsquared(y_true, y_pred)) * (n - 1) / (n - p - 1)
 
+def mae(y_true, y_pred):
+    """
+    Computes mse over batch dimension, i.e. it performs no reduction along
+    the feature axis;
+
+    Reduction policy depends on the context;
+    i.e. it should be handled by the user
+
+    e.g. call .mean(axis=0) on the return to get an average over the time dimension
+         call .mean(axis=1) on the return to get the average over the features or
+         call .mean() to get the average over both dimensions.
+
+    """
+    prevent_incorrect_dimensions(y_true, y_pred)
+    return np.abs(y_true - y_pred).mean(axis=0)
+
+def nmae(y_true, y_pred):
+    """
+    Computes mse over batch dimension, i.e. it performs no reduction along
+    the feature axis;
+
+    Reduction policy depends on the context;
+    i.e. it should be handled by the user
+
+    e.g. call .mean(axis=0) on the return to get an average over the time dimension
+         call .mean(axis=1) on the return to get the average over the features or
+         call .mean() to get the average over both dimensions.
+
+    """
+    return mae(y_true, y_pred) / prevent_zeros(np.nanmax(y_true) - np.nanmin(y_true))
 
 def mse(y_true, y_pred):
     """
@@ -88,8 +118,39 @@ def mse(y_true, y_pred):
          call .mean() to get the average over both dimensions.
 
     """
+    prevent_incorrect_dimensions(y_true, y_pred)
     return np.square(y_true - y_pred).mean(axis=0)
 
+
+def rmse(y_true, y_pred):
+    """
+    Computes mse over batch dimension, i.e. it performs no reduction along
+    the feature axis;
+
+    Reduction policy depends on the context;
+    i.e. it should be handled by the user
+
+    e.g. call .mean(axis=0) on the return to get an average over the time dimension
+         call .mean(axis=1) on the return to get the average over the features or
+         call .mean() to get the average over both dimensions.
+
+    """
+    return np.sqrt(mse(y_true, y_pred))
+
+def nrmse(y_true, y_pred):
+    """
+    Computes mse over batch dimension, i.e. it performs no reduction along
+    the feature axis;
+
+    Reduction policy depends on the context;
+    i.e. it should be handled by the user
+
+    e.g. call .mean(axis=0) on the return to get an average over the time dimension
+         call .mean(axis=1) on the return to get the average over the features or
+         call .mean() to get the average over both dimensions.
+
+    """
+    return rmse(y_true, y_pred) / prevent_zeros(np.nanmax(y_true) - np.nanmin(y_true))
 
 def cvrmse(y_true, y_pred):
     """
@@ -115,8 +176,7 @@ def cvrmse(y_true, y_pred):
     """
     prevent_incorrect_dimensions(y_true, y_pred)
     axis = 0
-    mse = np.square(y_true - y_pred).mean(axis)
-    return np.sqrt(mse) / prevent_zeros(y_true.mean(axis))
+    return rmse(y_true, y_pred) / prevent_zeros(y_true.mean(axis))
 
 
 def mape(y_true, y_pred):
