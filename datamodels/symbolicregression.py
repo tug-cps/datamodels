@@ -14,6 +14,9 @@ class SymbolicRegression(Model):
         from gplearn.genetic import SymbolicRegressor
         self.model = SymbolicRegressor(**parameters)
 
+    def get_program(self):
+        return self.model._program 
+
     def reshape_x(self, arr):
         if arr.shape[1] == arr.shape[1] == 1:
             arr = arr.ravel()

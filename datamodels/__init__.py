@@ -11,6 +11,7 @@ from . linearmodel import LinearModel
 from . linearregression import LinearRegression
 from . ridgeregression import RidgeRegression
 from . plsregression import PLSRegression
+from . wls import WeightedLS
 from . symbolicregression import SymbolicRegression
 from . rulefit import RuleFitRegression
 from . neuralnetwork import NeuralNetwork

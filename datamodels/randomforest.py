@@ -20,6 +20,9 @@ class RandomForestRegression(Model):
         from sklearn.ensemble import RandomForestRegressor
 
         self.model = RandomForestRegressor(**parameters)
+    
+    def get_coef(self):
+        return self.model.feature_importances_
 
     def reshape(self, arr):
         if arr.shape[1] == arr.shape[1] == 1:

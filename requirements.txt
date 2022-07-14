@@ -5,5 +5,6 @@ tensorflow
 
 rulefit
 gplearn
+statsmodels
 
 pytest

@@ -5,11 +5,14 @@ from . import Model
 
 class LinearModel(Model):
 
-    def __init__(self, parameters=None, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
         
         from sklearn.dummy import DummyRegressor
         self.model = DummyRegressor()
+
+    def get_coef(self):
+        return self.model.coef_
 
     def reshape(self, arr):
             if arr.shape[1] == arr.shape[1] == 1:

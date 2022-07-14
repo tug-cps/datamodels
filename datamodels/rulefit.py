@@ -14,6 +14,10 @@ class RuleFitRegression(Model):
         from rulefit.rulefit import RuleFit
         self.model = RuleFit(**parameters)
 
+    def get_rules(self):
+        rules = self.model.get_rules()
+        return rules[rules.coef != 0].sort_values("support", ascending=False)
+
     def reshape_x(self, arr):
         if arr.shape[1] == arr.shape[1] == 1:
             arr = arr.ravel()
