@@ -3,11 +3,14 @@ from . import processing
 from . import validation
 
 from . model import Model
+from . linearmodel import LinearModel
 
 # These MUST be imported after the base class
 
 # models
 from . linearregression import LinearRegression
+from . ridgeregression import RidgeRegression
+from . plsregression import PLSRegression
 from . neuralnetwork import NeuralNetwork
 from . randomforest import RandomForestRegression
 from . xgboost import XGBoost
