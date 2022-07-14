@@ -2,6 +2,8 @@ numpy
 
 scikit-learn
 tensorflow
+
 rulefit
+gplearn
 
 pytest
