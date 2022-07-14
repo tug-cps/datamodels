@@ -25,7 +25,7 @@ class RandomForestRegression(Model):
         return self.model.feature_importances_
 
     def reshape(self, arr):
-        if arr.shape[1] == arr.shape[1] == 1:
+        if arr.shape[1] == arr.shape[2] == 1:
             arr = arr.ravel()
         else:
             arr = arr.reshape(arr.shape[0], arr.shape[1] * arr.shape[2])

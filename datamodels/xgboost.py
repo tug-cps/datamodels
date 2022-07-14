@@ -21,14 +21,14 @@ class XGBoost(Model):
         self.model = GradientBoostingRegressor(**parameters)
 
     def reshape_x(self, arr):
-        if arr.shape[1] == arr.shape[1] == 1:
+        if arr.shape[1] == arr.shape[2] == 1:
             arr = arr.ravel()
         else:
             arr = arr.reshape(arr.shape[0], arr.shape[1] * arr.shape[2])
         return arr
 
     def reshape_y(self, arr):
-        if arr.shape[1] == arr.shape[1] == 1:
+        if arr.shape[1] == arr.shape[2] == 1:
             arr = arr.ravel()
         else:
             raise RuntimeError(

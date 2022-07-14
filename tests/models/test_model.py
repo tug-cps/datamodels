@@ -119,3 +119,72 @@ def test_predict_single_value_save_and_load(model_class, tmpdir):
 
     y_pred = model_from_file.predict(x_test)
     assert y_pred.shape == (5, 1, number_target_features)
+
+@pytest.mark.parametrize('model_class', [
+    LinearRegression,
+    RidgeRegression,
+    PLSRegression,
+    RandomForestRegression
+])
+def test_reshaping_on_multiout_models(model_class):
+    batch = 15
+    lookback = 5
+
+    number_input_features = 3
+    number_target_features = 2
+
+    model = model_class()
+
+    x_train = np.random.random((batch, 1, 1))
+    y_train = np.random.random((batch, 1, 1))
+
+    x = model.reshape(x_train)
+    y = model.reshape(y_train)
+
+    assert x.shape == (batch,)
+    assert y.shape == (batch,)
+
+    x_train = np.random.random((batch, lookback + 1, number_input_features))
+    y_train = np.random.random((batch, 1, number_target_features))
+
+    x = model.reshape(x_train)
+    y = model.reshape(y_train)
+
+    assert x.shape == (batch, (lookback + 1) * number_input_features)
+    assert y.shape == (batch, 1 * number_target_features)
+
+@pytest.mark.parametrize('model_class', [
+    SupportVectorRegression,
+    WeightedLS,
+    SymbolicRegression,
+    RuleFitRegression,
+    XGBoost,
+])
+def test_reshaping_on_singleout_models(model_class):
+    batch = 15
+    lookback = 5
+
+    number_input_features = 3
+    number_target_features = 2
+
+    model = model_class()
+
+    x_train = np.random.random((batch, 1, 1))
+    y_train = np.random.random((batch, 1, 1))
+
+    x = model.reshape_x(x_train)
+    y = model.reshape_y(y_train)
+
+    assert x.shape == (batch,)
+    assert y.shape == (batch,)
+
+    x_train = np.random.random((batch, lookback + 1, number_input_features))
+
+    x = model.reshape_x(x_train)
+
+    assert x.shape == (batch, (lookback + 1) * number_input_features)
+
+    y_train = np.random.random((batch, 1, number_target_features))
+
+    with pytest.raises(Exception):
+        y = model.reshape_y(y_train)
