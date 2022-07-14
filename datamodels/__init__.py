@@ -11,6 +11,7 @@ from . linearmodel import LinearModel
 from . linearregression import LinearRegression
 from . ridgeregression import RidgeRegression
 from . plsregression import PLSRegression
+from . rulefit import RuleFitRegression
 from . neuralnetwork import NeuralNetwork
 from . randomforest import RandomForestRegression
 from . xgboost import XGBoost
