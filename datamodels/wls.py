@@ -6,18 +6,11 @@ from sklearn.base import BaseEstimator
 from . import LinearModel
 
 
-class wls_wrapper(BaseEstimator):
-    def __init__(self, **params):
-        self.set_params(**params)
-
-    def set_params(self, **params):
-        self.l1_wt = params.pop("l1_wt", 0)
-        self.method = params.pop("method", "elastic_net")
-        self.alpha = params.pop("alpha", 1)
-        return self
-
-    def get_params(self):
-        return {"l1_wt": self.l1_wt, "method": self.method, "alpha": self.alpha}
+class WLSWrapper(BaseEstimator):
+    def __init__(self, l1_wt=0, method="elastic_net", alpha=1, **params):
+        self.method = method
+        self.l1_wt = l1_wt
+        self.alpha = alpha
 
     def fit(self, x_train, y_train, **kwargs):
         self.estimator = WLS(y_train, x_train)
@@ -36,7 +29,7 @@ class WeightedLS(LinearModel):
         super().__init__(**kwargs)
         if parameters is None:
             parameters = {"l1_wt": 0, "method": "elastic_net", "alpha": 1}
-        self.model = wls_wrapper(**parameters)
+        self.model = WLSWrapper(**parameters)
 
     def reshape_x(self, arr):
         if arr.shape[1] == arr.shape[2] == 1:

@@ -4,18 +4,22 @@ from . import Model
 
 
 class SymbolicRegression(Model):
-
     def __init__(self, parameters=None, **kwargs):
         super().__init__(**kwargs)
 
         if parameters is None:
-            parameters = {'population_size':50, 'stopping_criteria':0.0001, 'metric':'rmse'}
+            parameters = {
+                "population_size": 50,
+                "stopping_criteria": 0.0001,
+                "metric": "rmse",
+            }
 
         from gplearn.genetic import SymbolicRegressor
+
         self.model = SymbolicRegressor(**parameters)
 
     def get_program(self):
-        return self.model._program 
+        return self.model._program
 
     def reshape_x(self, arr):
         if arr.shape[1] == arr.shape[2] == 1:
@@ -28,7 +32,9 @@ class SymbolicRegression(Model):
         if arr.shape[1] == arr.shape[2] == 1:
             arr = arr.ravel()
         else:
-            raise RuntimeError("SymbolicRegression cannot predict anything other than single values.")
+            raise RuntimeError(
+                "SymbolicRegression cannot predict anything other than single values."
+            )
         return arr
 
     def train_model(self, x, y, **kwargs):
