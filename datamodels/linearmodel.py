@@ -4,22 +4,22 @@ from . import Model
 
 
 class LinearModel(Model):
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        
+
         from sklearn.dummy import DummyRegressor
+
         self.model = DummyRegressor()
 
     def get_coef(self):
         return self.model.coef_
 
     def reshape(self, arr):
-            if arr.shape[1] == arr.shape[2] == 1:
-                arr = arr.ravel()
-            else:
-                arr = arr.reshape(arr.shape[0], arr.shape[1] * arr.shape[2])
-            return arr
+        if arr.shape[1] == arr.shape[2] == 1:
+            arr = arr.ravel()
+        else:
+            arr = arr.reshape(arr.shape[0], arr.shape[1] * arr.shape[2])
+        return arr
 
     def train_model(self, x, y, **kwargs):
         x = self.reshape(x)

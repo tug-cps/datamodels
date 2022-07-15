@@ -10,6 +10,7 @@ from . linearmodel import LinearModel
 # models
 from . linearregression import LinearRegression
 from . ridgeregression import RidgeRegression
+from . lassoregerssion import LassoRegression
 from . plsregression import PLSRegression
 from . wls import WeightedLS
 from . symbolicregression import SymbolicRegression

@@ -6,6 +6,7 @@ from datamodels import (
     Model, 
     LinearRegression,
     RidgeRegression,
+    LassoRegression,
     PLSRegression,
     WeightedLS,
     SymbolicRegression,
@@ -26,6 +27,7 @@ from datamodels import (
 @pytest.mark.parametrize('model_class', [
     LinearRegression,
     RidgeRegression,
+    LassoRegression,
     PLSRegression,
     RandomForestRegression,
     NeuralNetwork,
@@ -71,6 +73,7 @@ def test_predict_sequence_save_and_load(model_class, tmpdir):
 @pytest.mark.parametrize('model_class', [
     LinearRegression,
     RidgeRegression,
+    LassoRegression,
     PLSRegression,
     WeightedLS,
     SymbolicRegression,
@@ -123,6 +126,7 @@ def test_predict_single_value_save_and_load(model_class, tmpdir):
 @pytest.mark.parametrize('model_class', [
     LinearRegression,
     RidgeRegression,
+    LassoRegression,
     PLSRegression,
     RandomForestRegression
 ])

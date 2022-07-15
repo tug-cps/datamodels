@@ -2,7 +2,6 @@ from . import LinearModel
 
 
 class LinearRegression(LinearModel):
-
     def __init__(self, parameters=None, **kwargs):
         super().__init__(**kwargs)
 
