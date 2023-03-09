@@ -4,26 +4,29 @@ import pytest
 
 from datamodels import processing
 
+epsilon = np.finfo(np.float64).eps
 
 def test_prevent_zeros_scalar():
     data = 0
     corrected_data = processing.shape.prevent_zeros(data)
 
-    assert corrected_data == 1
+    assert corrected_data == epsilon
 
 
 def test_prevent_zeros_all_zeros_array():
     data = np.zeros((4,))
     corrected_data = processing.shape.prevent_zeros(data)
 
-    assert np.all(np.isclose(corrected_data, np.ones_like(data)))
+    assert np.all(np.isclose(corrected_data, epsilon * np.ones_like(data)))
 
 
 def test_prevent_zeros_one_zero_array():
     data = np.array([1.0, 1.0, 1.0, 0.0, 1.0])
+    expected_data = data = np.array([1.0, 1.0, 1.0, epsilon, 1.0])
+
     corrected_data = processing.shape.prevent_zeros(data)
 
-    assert np.all(np.isclose(corrected_data, np.ones_like(data)))
+    assert np.all(np.isclose(corrected_data, expected_data))
 
 
 @pytest.mark.parametrize(

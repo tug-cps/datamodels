@@ -7,8 +7,11 @@ from typing import Tuple
 def prevent_zeros(value):
     """
 
-    this ensures that the value does not contain zeros.
-    it can be used to prevent division by zero.
+    This ensures that the value does not contain zeros.
+    It can be used to prevent division by zero.
+    
+    This method replaces 0 by the smallest possible value on the current machine.
+    THINK ABOUT WHETHER THIS IS WHAT YOU NEED!!
 
     Parameters
     ----------
@@ -19,14 +22,11 @@ def prevent_zeros(value):
     Returns
     -------
     scalar or array_like
-        the input with the zeroes replaced.
+        the input with the zeroes replaced by a very small value.
 
     """
-    if np.isscalar(value):
-        return value if value != 0 else 1.
-
-    corrected_value = copy.deepcopy(value)
-    corrected_value[corrected_value == 0] = 1.0
+    epsilon = np.finfo(np.float64).eps
+    corrected_value = np.maximum(np.abs(value), epsilon)
     return corrected_value
 
 

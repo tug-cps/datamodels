@@ -7,6 +7,9 @@ def prevent_zeros(value):
 
     This ensures that the value does not contain zeros.
     It can be used to prevent division by zero.
+    
+    This method replaces 0 by the smallest possible value on the current machine.
+    THINK ABOUT WHETHER THIS IS WHAT YOU NEED!!
 
     Parameters
     ----------
@@ -17,14 +20,11 @@ def prevent_zeros(value):
     Returns
     -------
     scalar or array_like
-        the input with the zeroes replaced.
+        the input with the zeroes replaced by a very small value.
 
     """
-    if np.isscalar(value):
-        return value if value != 0 else 1.0
-
-    corrected_value = copy.deepcopy(value)
-    corrected_value[corrected_value == 0] = 1.0
+    epsilon = np.finfo(np.float64).eps
+    corrected_value = np.maximum(np.abs(value), epsilon)
     return corrected_value
 
 
@@ -92,8 +92,10 @@ def mae(y_true, y_pred):
 
 def nmae(y_true, y_pred):
     """
-    Computes mse over batch dimension, i.e. it performs no reduction along
+    Computes normalized mse over batch dimension, i.e. it performs no reduction along
     the feature axis;
+    
+    note that it uses the range of actual values (i.e. max - min) for normalization
 
     Reduction policy depends on the context;
     i.e. it should be handled by the user
@@ -139,8 +141,10 @@ def rmse(y_true, y_pred):
 
 def nrmse(y_true, y_pred):
     """
-    Computes mse over batch dimension, i.e. it performs no reduction along
+    Computes normalized mse over batch dimension, i.e. it performs no reduction along
     the feature axis;
+    
+    note that it uses the range of actual values (i.e. max - min) for normalization
 
     Reduction policy depends on the context;
     i.e. it should be handled by the user
