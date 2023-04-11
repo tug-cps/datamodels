@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "datamodels"
+version = "0.1.0"
+description = ""
+authors = ["Thomas Schranz <thomas.schranz@tugraz.at>"]
+readme = "README.md"
+packages = [{ include = "datamodels" }]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.11"
+scikit-learn = "^1.2.2"
+tensorflow = "^2.12.0"
+rulefit = "^0.3.1"
+gplearn = "^0.4.2"
+statsmodels = "^0.13.5"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.3.0"
+
+[tool.poetry.group.dev.dependencies]
+pylint = "^2.17.2"
+
+[build-system]
+requires = ["poetry_core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pylint]
+max-line-length = 140
+disable = [
+    "C0103", # (invalid-name)
+    "C0114", # (missing-module-docstring)
+    "C0115", # (missing-class-docstring)
+    "C0116", # (missing-function-docstring)
+    "R0903", # (too-few-public-methods)
+    "R0913", # (too-many-arguments)
+    "W0105", # (pointless-string-statement)
+]
